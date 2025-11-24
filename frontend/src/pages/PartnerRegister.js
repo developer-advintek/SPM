@@ -358,8 +358,123 @@ export const PartnerRegister = () => {
                 </>
               )}
 
-              {/* Step 3: Account Setup */}
+              {/* Step 3: KYC Documents */}
               {step === 3 && (
+                <>
+                  <div className="p-4 bg-yellow-500/20 border border-yellow-400/40 rounded-lg mb-4">
+                    <p className="text-yellow-100 text-sm font-semibold">📋 Required Documents for Verification</p>
+                    <p className="text-yellow-200/80 text-xs mt-1">Please upload clear copies of the following documents (PDF, JPG, PNG - Max 5MB each)</p>
+                  </div>
+
+                  {/* Business License */}
+                  <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-slate-100 font-semibold">Business License * 📄</Label>
+                      {uploadedFiles.business_license && (
+                        <span className="text-green-400 text-sm">✓ Uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">Company registration or business license document</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('business_license', e)}
+                      className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                      data-testid="upload-business-license"
+                    />
+                    {uploadedFiles.business_license && (
+                      <p className="text-sm text-slate-300 mt-2">📎 {uploadedFiles.business_license.name}</p>
+                    )}
+                  </div>
+
+                  {/* Tax ID */}
+                  <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-slate-100 font-semibold">Tax ID / EIN * 📄</Label>
+                      {uploadedFiles.tax_id && (
+                        <span className="text-green-400 text-sm">✓ Uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">Tax identification number or Employer Identification Number</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('tax_id', e)}
+                      className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                      data-testid="upload-tax-id"
+                    />
+                    {uploadedFiles.tax_id && (
+                      <p className="text-sm text-slate-300 mt-2">📎 {uploadedFiles.tax_id.name}</p>
+                    )}
+                  </div>
+
+                  {/* Identity Proof */}
+                  <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-slate-100 font-semibold">Identity Proof (Owner/Director) * 🪪</Label>
+                      {uploadedFiles.identity_proof && (
+                        <span className="text-green-400 text-sm">✓ Uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">Government-issued ID (Passport, Driver's License, etc.)</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('identity_proof', e)}
+                      className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                      data-testid="upload-identity-proof"
+                    />
+                    {uploadedFiles.identity_proof && (
+                      <p className="text-sm text-slate-300 mt-2">📎 {uploadedFiles.identity_proof.name}</p>
+                    )}
+                  </div>
+
+                  {/* Bank Statement */}
+                  <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-slate-100 font-semibold">Bank Statement (Optional) 🏦</Label>
+                      {uploadedFiles.bank_statement && (
+                        <span className="text-green-400 text-sm">✓ Uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">Recent bank statement for payout verification</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('bank_statement', e)}
+                      className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                      data-testid="upload-bank-statement"
+                    />
+                    {uploadedFiles.bank_statement && (
+                      <p className="text-sm text-slate-300 mt-2">📎 {uploadedFiles.bank_statement.name}</p>
+                    )}
+                  </div>
+
+                  {/* Signed Agreement */}
+                  <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-slate-100 font-semibold">Signed Partner Agreement (Optional) ✍️</Label>
+                      {uploadedFiles.signed_agreement && (
+                        <span className="text-green-400 text-sm">✓ Uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">Download, sign, and upload the partner agreement</p>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileUpload('signed_agreement', e)}
+                      className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                      data-testid="upload-signed-agreement"
+                    />
+                    {uploadedFiles.signed_agreement && (
+                      <p className="text-sm text-slate-300 mt-2">📎 {uploadedFiles.signed_agreement.name}</p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Step 4: Account Setup */}
+              {step === 4 && (
                 <>
                   <div className="p-4 bg-blue-500/20 border border-blue-400/40 rounded-lg">
                     <p className="text-blue-100 text-sm">
