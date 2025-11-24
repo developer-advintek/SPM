@@ -171,7 +171,7 @@ export const Dashboard = () => {
           <TabsContent value="performance">
             <Card data-testid="performance-content">
               <CardHeader>
-                <CardTitle>Performance Metrics</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Performance Metrics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
