@@ -39,7 +39,7 @@ export const Analytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card data-testid="revenue-overview-card">
               <CardHeader>
-                <CardTitle>Revenue Overview</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Revenue Overview</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
