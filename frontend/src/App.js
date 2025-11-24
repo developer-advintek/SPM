@@ -11,6 +11,7 @@ import { ApprovalCenter } from './pages/ApprovalCenter';
 import { Analytics } from './pages/Analytics';
 import { Tickets } from './pages/Tickets';
 import { UserManagement } from './pages/UserManagement';
+import { PartnerRegister } from './pages/PartnerRegister';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
