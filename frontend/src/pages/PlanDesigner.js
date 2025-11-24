@@ -8,6 +8,7 @@ import { createCommissionPlan } from '../utils/api';
 import { toast } from 'sonner';
 
 export const PlanDesigner = () => {
+  const [products, setProducts] = useState([]);
   const [plan, setPlan] = useState({
     name: '',
     description: '',
@@ -17,10 +18,33 @@ export const PlanDesigner = () => {
   });
   const [currentRule, setCurrentRule] = useState({
     rule_type: 'percentage',
-    condition: {},
-    action: {},
+    condition: {
+      product_ids: [],
+      min_amount: '',
+      max_amount: ''
+    },
+    action: {
+      commission_rate: '',
+      bonus_amount: ''
+    },
     priority: 0
   });
+  const [showVisualDesigner, setShowVisualDesigner] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${API}/products`, { 
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Failed to fetch products', error);
+    }
+  };
 
   const addRule = () => {
     setPlan({
