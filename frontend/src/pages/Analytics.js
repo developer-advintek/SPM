@@ -17,7 +17,10 @@ export const Analytics = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto" data-testid="analytics-page">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Analytics & Reports</h1>
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>Analytics & Reports</h1>
+          <p className="text-slate-400">Insights, forecasting & performance metrics</p>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" data-testid="btn-export-pdf">Export PDF</Button>
           <Button variant="outline" data-testid="btn-export-excel">Export Excel</Button>
