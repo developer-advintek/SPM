@@ -195,10 +195,11 @@ export const PartnerRegister = () => {
         <div className="mb-8">
           <Progress value={progressPercentage} className="h-3" data-testid="registration-progress" />
           <div className="flex justify-between mt-2 text-sm text-slate-400">
-            <span className={step >= 1 ? 'text-purple-400 font-semibold' : ''}>Company Info</span>
-            <span className={step >= 2 ? 'text-purple-400 font-semibold' : ''}>Business Details</span>
-            <span className={step >= 3 ? 'text-purple-400 font-semibold' : ''}>Account Setup</span>
-            <span className={step >= 4 ? 'text-purple-400 font-semibold' : ''}>Agreements</span>
+            <span className={step >= 1 ? 'text-purple-400 font-semibold' : ''}>Company</span>
+            <span className={step >= 2 ? 'text-purple-400 font-semibold' : ''}>Business</span>
+            <span className={step >= 3 ? 'text-purple-400 font-semibold' : ''}>Documents</span>
+            <span className={step >= 4 ? 'text-purple-400 font-semibold' : ''}>Account</span>
+            <span className={step >= 5 ? 'text-purple-400 font-semibold' : ''}>Review</span>
           </div>
         </div>
 
