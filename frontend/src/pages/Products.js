@@ -72,7 +72,10 @@ export const Products = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto" data-testid="products-page">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Product Catalog</h1>
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>Product Catalog</h1>
+          <p className="text-slate-400">Manage products, commissions & eligibility</p>
+        </div>
         <div className="flex gap-3">
           <label className="cursor-pointer">
             <Button variant="outline" as="span" data-testid="btn-bulk-upload">Bulk Upload CSV</Button>
