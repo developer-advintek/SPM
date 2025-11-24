@@ -336,7 +336,7 @@ table tbody td {
 
 /* Text colors for dark theme */
 p, span, div {
-  color: #e2e8f0;
+  color: #e2e8f0 !important;
 }
 
 label {
@@ -347,16 +347,51 @@ label {
   display: block !important;
 }
 
-.text-slate-600 {
-  color: rgba(226, 232, 240, 0.7) !important;
+/* Override all text color utilities */
+.text-slate-600, .text-slate-500 {
+  color: rgba(226, 232, 240, 0.9) !important;
 }
 
 .text-slate-400 {
-  color: rgba(203, 213, 225, 0.9) !important;
+  color: rgba(226, 232, 240, 0.95) !important;
 }
 
 .text-slate-300 {
-  color: rgba(226, 232, 240, 1) !important;
+  color: rgba(241, 245, 249, 1) !important;
+}
+
+.text-slate-200 {
+  color: #f8fafc !important;
+}
+
+.text-slate-700, .text-slate-800, .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+/* Force visible text in all backgrounds */
+.bg-yellow-50 *, .bg-yellow-100 *, .bg-yellow-200 * {
+  color: #78350f !important;
+}
+
+.bg-green-50 *, .bg-green-100 *, .bg-green-200 * {
+  color: #14532d !important;
+}
+
+.bg-red-50 *, .bg-red-100 *, .bg-red-200 * {
+  color: #7f1d1d !important;
+}
+
+.bg-blue-50 *, .bg-blue-100 *, .bg-blue-200 * {
+  color: #1e3a8a !important;
+}
+
+.bg-slate-50 *, .bg-slate-100 * {
+  color: #0f172a !important;
+}
+
+/* Font medium and semibold visibility */
+.font-medium, .font-semibold, .font-bold {
+  color: #f8fafc !important;
 }
 
 /* Loading animation */
