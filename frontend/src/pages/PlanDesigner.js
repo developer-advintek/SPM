@@ -54,12 +54,15 @@ export const PlanDesigner = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto" data-testid="plan-designer-page">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Commission Plan Designer</h1>
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>Commission Plan Designer</h1>
+        <p className="text-slate-400">Build intelligent commission rules with our hybrid designer</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card data-testid="plan-details-card">
+        <Card data-testid="plan-details-card" className="hover:scale-[1.02]">
           <CardHeader>
-            <CardTitle>Plan Details</CardTitle>
+            <CardTitle className="text-slate-200">Plan Details</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,9 +112,9 @@ export const PlanDesigner = () => {
           </CardContent>
         </Card>
 
-        <Card data-testid="rules-builder-card">
+        <Card data-testid="rules-builder-card" className="hover:scale-[1.02]">
           <CardHeader>
-            <CardTitle>Rules Builder (Hybrid)</CardTitle>
+            <CardTitle className="text-slate-200">Rules Builder (Hybrid)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -142,18 +145,18 @@ export const PlanDesigner = () => {
               <Button onClick={addRule} className="w-full" data-testid="btn-add-rule">Add Rule</Button>
               
               <div className="mt-6">
-                <h3 className="font-semibold mb-3">Current Rules ({plan.rules.length})</h3>
+                <h3 className="font-semibold mb-3 text-slate-200">Current Rules ({plan.rules.length})</h3>
                 <div className="space-y-2" data-testid="rules-list">
                   {plan.rules.map((rule, idx) => (
-                    <div key={rule.id} className="p-3 bg-slate-50 rounded" data-testid={`rule-item-${idx}`}>
+                    <div key={rule.id} className="p-3 bg-slate-700/30 rounded border border-purple-500/30" data-testid={`rule-item-${idx}`}>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium capitalize">{rule.rule_type}</span>
-                        <span className="text-sm text-slate-600">Priority: {rule.priority}</span>
+                        <span className="font-medium capitalize text-purple-300">{rule.rule_type}</span>
+                        <span className="text-sm text-slate-400">Priority: {rule.priority}</span>
                       </div>
                     </div>
                   ))}
                   {plan.rules.length === 0 && (
-                    <p className="text-slate-600 text-sm" data-testid="no-rules">No rules added yet</p>
+                    <p className="text-slate-400 text-sm" data-testid="no-rules">No rules added yet</p>
                   )}
                 </div>
               </div>
@@ -162,23 +165,23 @@ export const PlanDesigner = () => {
         </Card>
       </div>
 
-      <Card className="mt-6" data-testid="visual-designer-card">
+      <Card className="mt-6 hover:scale-[1.01]" data-testid="visual-designer-card">
         <CardHeader>
-          <CardTitle>Visual Flow Designer</CardTitle>
+          <CardTitle className="text-slate-200">Visual Flow Designer</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center" data-testid="visual-flow-canvas">
-            <p className="text-slate-600">Visual flow chart builder</p>
+          <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-12 text-center bg-slate-800/20" data-testid="visual-flow-canvas">
+            <p className="text-slate-300 text-lg font-semibold">Visual flow chart builder</p>
             <p className="text-sm text-slate-400 mt-2">Drag and drop rules to create commission logic flows</p>
             <div className="mt-6 flex justify-center gap-4">
-              <div className="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center text-xs font-medium" data-testid="flow-node-condition">
-                Condition
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-blue-500/50" data-testid="flow-node-condition">
+                <span className="text-white">Condition</span>
               </div>
               <div className="flex items-center">
-                <div className="w-8 h-0.5 bg-slate-300"></div>
+                <div className="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
               </div>
-              <div className="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center text-xs font-medium" data-testid="flow-node-action">
-                Action
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-purple-500/50" data-testid="flow-node-action">
+                <span className="text-white">Action</span>
               </div>
             </div>
           </div>
