@@ -105,7 +105,7 @@ export const PartnerHub = () => {
         <TabsContent value="payouts">
           <Card data-testid="payouts-content">
             <CardHeader>
-              <CardTitle>Payout History</CardTitle>
+              <CardTitle className="text-white text-xl font-bold">Payout History</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
