@@ -114,7 +114,7 @@ export const Dashboard = () => {
           <TabsContent value="earnings">
             <Card data-testid="earnings-content">
               <CardHeader>
-                <CardTitle>Earnings Breakdown</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Earnings Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
                 {earnings && earnings.calculations && earnings.calculations.length > 0 ? (
