@@ -573,7 +573,7 @@ export const PartnerRegister = () => {
                     Already have an account?
                   </Button>
                 </Link>
-                {step < 4 ? (
+                {step < 5 ? (
                   <Button type="button" onClick={handleNext} data-testid="btn-next">
                     Next
                   </Button>
