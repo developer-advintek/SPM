@@ -62,6 +62,24 @@ export const PartnerRegister = () => {
     });
   };
 
+  const handleFileUpload = (documentType, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size should not exceed 5MB');
+        return;
+      }
+      
+      setUploadedFiles({
+        ...uploadedFiles,
+        [documentType]: file
+      });
+      
+      toast.success(`${file.name} uploaded successfully`);
+    }
+  };
+
   const handleNext = () => {
     // Validation for each step
     if (step === 1) {
@@ -77,6 +95,13 @@ export const PartnerRegister = () => {
       }
     }
     if (step === 3) {
+      // Check required documents
+      if (!uploadedFiles.business_license || !uploadedFiles.tax_id || !uploadedFiles.identity_proof) {
+        toast.error('Please upload all required documents (Business License, Tax ID, Identity Proof)');
+        return;
+      }
+    }
+    if (step === 4) {
       if (!formData.password || formData.password.length < 6) {
         toast.error('Password must be at least 6 characters');
         return;
@@ -87,7 +112,7 @@ export const PartnerRegister = () => {
       }
     }
     
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     }
   };
