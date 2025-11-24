@@ -264,6 +264,24 @@ async def register_partner(partner_data: dict):
     
     return {"message": "Partner registered successfully. Pending admin approval.", "partner_id": partner.id}
 
+@api_router.get("/partners/all")
+async def get_all_partners(current_user: User = Depends(get_current_user)):
+    """Get all partners - admins see all, partners see only their own"""
+    if current_user.role == "partner":
+        partners = await db.partners.find({"user_id": current_user.id}, {"_id": 0}).to_list(10)
+    else:
+        partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    return partners
+
 @api_router.get("/partners/pending")
 async def get_pending_partners(current_user: User = Depends(require_role(["admin", "finance"]))):
     """Get all partners for review"""
