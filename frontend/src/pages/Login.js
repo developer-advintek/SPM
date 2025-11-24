@@ -69,18 +69,19 @@ export const Login = () => {
           <CardContent className="space-y-4">
             {isRegister && (
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName" className="text-slate-100 font-semibold">Full Name</Label>
                 <Input
                   id="fullName"
                   data-testid="input-fullname"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-100 font-semibold">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -88,10 +89,11 @@ export const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-slate-100 font-semibold">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -99,15 +101,16 @@ export const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
               />
             </div>
             {isRegister && (
               <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role" className="text-slate-100 font-semibold">Role</Label>
                 <select
                   id="role"
                   data-testid="select-role"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 border rounded-lg bg-white/10 border-white/30 text-white"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                 >
