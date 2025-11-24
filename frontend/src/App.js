@@ -63,15 +63,13 @@ const Navigation = () => {
                     Products
                   </Link>
                   <Link to="/plan-designer" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-plan-designer">
-                    Plan Designer
+                    Plans
                   </Link>
                 </>
               )}
-              {(user.role === 'partner' || user.role === 'admin' || user.role === 'manager') && (
-                <Link to="/partner-hub" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partner-hub">
-                  Partner Hub
-                </Link>
-              )}
+              <Link to="/partners" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partners">
+                Partners
+              </Link>
               {(user.role === 'admin' || user.role === 'manager' || user.role === 'finance') && (
                 <Link to="/approval-center" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-approval-center">
                   Approvals
@@ -86,11 +84,6 @@ const Navigation = () => {
               {(user.role === 'admin' || user.role === 'manager') && (
                 <Link to="/users" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-users">
                   Users
-                </Link>
-              )}
-              {(user.role === 'admin' || user.role === 'finance') && (
-                <Link to="/partner-approvals" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partner-approvals">
-                  Partner Approvals
                 </Link>
               )}
             </div>
