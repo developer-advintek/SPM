@@ -61,7 +61,7 @@ export const Analytics = () => {
 
             <Card data-testid="team-performance-card">
               <CardHeader>
-                <CardTitle>Team Performance</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Team Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
