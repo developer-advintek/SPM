@@ -143,44 +143,171 @@ export const PlanDesigner = () => {
 
         <Card data-testid="rules-builder-card" className="hover:scale-[1.02]">
           <CardHeader>
-            <CardTitle className="text-slate-200">Rules Builder (Hybrid)</CardTitle>
+            <CardTitle className="text-slate-200">Rules Builder</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <Label>Rule Type</Label>
+                <Label className="text-slate-100 font-semibold">Rule Type</Label>
                 <select
                   data-testid="select-rule-type"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 border rounded-lg bg-white/10 border-white/30 text-white"
                   value={currentRule.rule_type}
                   onChange={(e) => setCurrentRule({ ...currentRule, rule_type: e.target.value })}
                 >
                   <option value="flat">Flat Rate</option>
-                  <option value="percentage">Percentage</option>
-                  <option value="tiered">Tiered</option>
-                  <option value="formula">Formula</option>
+                  <option value="percentage">Percentage Based</option>
+                  <option value="tiered">Tiered (Volume-based)</option>
+                  <option value="formula">Custom Formula</option>
                   <option value="multiplier">Multiplier</option>
                 </select>
               </div>
+
               <div>
-                <Label>Priority</Label>
+                <Label className="text-slate-100 font-semibold mb-2">Apply to Products</Label>
+                <div className="max-h-40 overflow-y-auto bg-slate-700/30 border border-slate-600/30 rounded-lg p-3 space-y-2">
+                  {products.length > 0 ? (
+                    products.slice(0, 10).map(product => (
+                      <div key={product.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`product-${product.id}`}
+                          checked={currentRule.condition.product_ids.includes(product.id)}
+                          onChange={(e) => {
+                            const newProductIds = e.target.checked
+                              ? [...currentRule.condition.product_ids, product.id]
+                              : currentRule.condition.product_ids.filter(id => id !== product.id);
+                            setCurrentRule({
+                              ...currentRule,
+                              condition: { ...currentRule.condition, product_ids: newProductIds }
+                            });
+                          }}
+                          className="rounded"
+                        />
+                        <label htmlFor={`product-${product.id}`} className="text-sm text-slate-300 cursor-pointer">
+                          {product.name} ({product.sku}) - {parseFloat(product.base_commission_rate).toFixed(2)}%
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-slate-400 text-sm">No products available</p>
+                  )}
+                </div>
+                {products.length > 10 && (
+                  <p className="text-xs text-slate-400 mt-1">Showing first 10 products. Use "All Products" for more.</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-100 font-semibold">Min Amount ($)</Label>
+                  <Input
+                    type="number"
+                    value={currentRule.condition.min_amount}
+                    onChange={(e) => setCurrentRule({
+                      ...currentRule,
+                      condition: { ...currentRule.condition, min_amount: e.target.value }
+                    })}
+                    placeholder="0"
+                    className="bg-white/10 border-white/30 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-100 font-semibold">Max Amount ($)</Label>
+                  <Input
+                    type="number"
+                    value={currentRule.condition.max_amount}
+                    onChange={(e) => setCurrentRule({
+                      ...currentRule,
+                      condition: { ...currentRule.condition, max_amount: e.target.value }
+                    })}
+                    placeholder="Unlimited"
+                    className="bg-white/10 border-white/30 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-100 font-semibold">Commission Rate (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={currentRule.action.commission_rate}
+                    onChange={(e) => setCurrentRule({
+                      ...currentRule,
+                      action: { ...currentRule.action, commission_rate: e.target.value }
+                    })}
+                    placeholder="5.00"
+                    className="bg-white/10 border-white/30 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-100 font-semibold">Bonus Amount ($)</Label>
+                  <Input
+                    type="number"
+                    value={currentRule.action.bonus_amount}
+                    onChange={(e) => setCurrentRule({
+                      ...currentRule,
+                      action: { ...currentRule.action, bonus_amount: e.target.value }
+                    })}
+                    placeholder="0"
+                    className="bg-white/10 border-white/30 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-slate-100 font-semibold">Priority (Lower = Higher Priority)</Label>
                 <Input
                   data-testid="input-rule-priority"
                   type="number"
                   value={currentRule.priority}
-                  onChange={(e) => setCurrentRule({ ...currentRule, priority: parseInt(e.target.value) })}
+                  onChange={(e) => setCurrentRule({ ...currentRule, priority: parseInt(e.target.value) || 0 })}
+                  className="bg-white/10 border-white/30 text-white"
                 />
               </div>
-              <Button onClick={addRule} className="w-full" data-testid="btn-add-rule">Add Rule</Button>
+
+              <Button onClick={addRule} className="w-full" data-testid="btn-add-rule">
+                Add Rule to Plan
+              </Button>
               
               <div className="mt-6">
                 <h3 className="font-semibold mb-3 text-slate-200">Current Rules ({plan.rules.length})</h3>
                 <div className="space-y-2" data-testid="rules-list">
                   {plan.rules.map((rule, idx) => (
                     <div key={rule.id} className="p-3 bg-purple-500/20 border border-purple-400/40 rounded-lg backdrop-blur-sm" data-testid={`rule-item-${idx}`}>
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium capitalize text-purple-200">{rule.rule_type}</span>
-                        <span className="text-sm text-purple-300">Priority: {rule.priority}</span>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium capitalize text-purple-200">{rule.rule_type}</span>
+                            <span className="text-xs text-purple-300">Priority: {rule.priority}</span>
+                          </div>
+                          <div className="text-xs text-purple-300 space-y-1">
+                            {rule.condition.product_ids.length > 0 && (
+                              <p>Products: {rule.condition.product_ids.length} selected</p>
+                            )}
+                            {rule.action.commission_rate && (
+                              <p>Rate: {rule.action.commission_rate}%</p>
+                            )}
+                            {rule.condition.min_amount && (
+                              <p>Min: ${rule.condition.min_amount}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-400 hover:text-red-300"
+                          onClick={() => {
+                            setPlan({
+                              ...plan,
+                              rules: plan.rules.filter(r => r.id !== rule.id)
+                            });
+                          }}
+                        >
+                          Remove
+                        </Button>
                       </div>
                     </div>
                   ))}
