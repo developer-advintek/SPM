@@ -1,53 +1,178 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Products } from './pages/Products';
+import { PlanDesigner } from './pages/PlanDesigner';
+import { PartnerHub } from './pages/PartnerHub';
+import { ApprovalCenter } from './pages/ApprovalCenter';
+import { Analytics } from './pages/Analytics';
+import { Tickets } from './pages/Tickets';
+import { Button } from './components/ui/button';
+import { Toaster } from './components/ui/sonner';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
+const Navigation = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (!user) return null;
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <nav className="bg-white border-b border-slate-200" data-testid="main-navigation">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center space-x-8">
+            <Link to="/dashboard" className="text-xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }} data-testid="nav-logo">
+              SPM/PPM
+            </Link>
+            <div className="flex space-x-4">
+              <Link to="/dashboard" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-dashboard">
+                Dashboard
+              </Link>
+              {(user.role === 'admin' || user.role === 'finance') && (
+                <>
+                  <Link to="/products" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-products">
+                    Products
+                  </Link>
+                  <Link to="/plan-designer" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-plan-designer">
+                    Plan Designer
+                  </Link>
+                </>
+              )}
+              {user.role === 'partner' && (
+                <Link to="/partner-hub" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partner-hub">
+                  Partner Hub
+                </Link>
+              )}
+              {(user.role === 'admin' || user.role === 'manager' || user.role === 'finance') && (
+                <Link to="/approval-center" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-approval-center">
+                  Approvals
+                </Link>
+              )}
+              <Link to="/analytics" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-analytics">
+                Analytics
+              </Link>
+              <Link to="/tickets" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-tickets">
+                Support
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-slate-600" data-testid="nav-user-name">{user.full_name}</span>
+            <Button variant="outline" size="sm" onClick={handleLogout} data-testid="btn-logout">
+              Logout
+            </Button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+const AppContent = () => {
+  return (
+    <div className="App">
+      <Navigation />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/plan-designer"
+          element={
+            <ProtectedRoute>
+              <PlanDesigner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partner-hub"
+          element={
+            <ProtectedRoute>
+              <PartnerHub />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/approval-center"
+          element={
+            <ProtectedRoute>
+              <ApprovalCenter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute>
+              <Tickets />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+      <Toaster position="top-right" data-testid="toast-container" />
     </div>
   );
 };
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <WebSocketProvider>
+          <AppContent />
+        </WebSocketProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
