@@ -91,7 +91,7 @@ export const Analytics = () => {
 
             <Card data-testid="risk-analysis-card" className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Risk Analysis</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Risk Analysis</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
