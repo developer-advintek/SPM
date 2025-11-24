@@ -28,7 +28,7 @@ export const PartnerHub = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card data-testid="partner-info-card">
           <CardHeader>
-            <CardTitle>Partner Information</CardTitle>
+            <CardTitle className="text-white text-lg font-bold">Partner Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
