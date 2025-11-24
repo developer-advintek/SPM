@@ -44,13 +44,13 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-6 relative">
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }} data-testid="dashboard-title">
+          <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent" style={{ fontFamily: 'Outfit, sans-serif' }} data-testid="dashboard-title">
             Welcome, {user?.full_name}
           </h1>
-          <p className="text-slate-600" data-testid="user-role">Role: {user?.role}</p>
+          <p className="text-slate-300 text-lg" data-testid="user-role">Role: <span className="font-semibold text-purple-400">{user?.role}</span></p>
         </div>
 
         {/* Stats Cards */}
