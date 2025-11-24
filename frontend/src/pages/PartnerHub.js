@@ -110,12 +110,12 @@ export const PartnerHub = () => {
             <CardContent>
               <div className="space-y-3">
                 {payouts.map((payout) => (
-                  <div key={payout.id} className="flex justify-between items-center p-4 bg-slate-50 rounded" data-testid={`payout-item-${payout.id}`}>
+                  <div key={payout.id} className="flex justify-between items-center p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg" data-testid={`payout-item-${payout.id}`}>
                     <div>
-                      <p className="font-semibold">{payout.period}</p>
-                      <p className="text-sm text-slate-600">Amount: ${parseFloat(payout.amount).toLocaleString()}</p>
+                      <p className="font-semibold text-slate-100">{payout.period}</p>
+                      <p className="text-sm text-slate-300">Amount: ${parseFloat(payout.amount).toLocaleString()}</p>
                     </div>
-                    <Badge variant={payout.status === 'completed' ? 'default' : 'secondary'} data-testid={`payout-status-${payout.id}`}>
+                    <Badge className={payout.status === 'completed' ? 'bg-green-500/20 text-green-300 border-green-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40'} data-testid={`payout-status-${payout.id}`}>
                       {payout.status}
                     </Badge>
                   </div>
