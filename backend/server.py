@@ -405,6 +405,54 @@ async def request_more_info(partner_id: str, review_data: dict, current_user: Us
     
     return {"message": "Information request sent to partner"}
 
+@api_router.patch("/partners/{partner_id}")
+async def update_partner(partner_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Update partner details (tier, status, notes)"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    allowed_fields = ['tier', 'status', 'notes']
+    update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_dict})
+    
+    # Create audit log
+    await create_audit_log(current_user.id, "partner_updated", "partner", partner_id, partner, update_dict)
+    
+    return {"message": "Partner updated successfully"}
+
+@api_router.post("/partners/{partner_id}/deactivate")
+async def deactivate_partner(partner_id: str, deactivate_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Deactivate a partner"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {
+        "status": "inactive",
+        "deactivation_reason": deactivate_data.get('reason', ''),
+        "deactivated_at": datetime.now(timezone.utc).isoformat(),
+        "deactivated_by": current_user.id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    
+    # Deactivate user account
+    await db.users.update_one(
+        {"id": partner['user_id']},
+        {"$set": {"active": False}}
+    )
+    
+    # Create audit log
+    await create_audit_log(current_user.id, "partner_deactivated", "partner", partner_id, partner, update_data)
+    
+    # TODO: Send deactivation email
+    
+    return {"message": "Partner deactivated successfully"}
+
 # Helper function for audit logs
 async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
     audit = AuditLog(
