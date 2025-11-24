@@ -28,13 +28,30 @@ export const PartnerRegister = () => {
     number_of_employees: '',
     expected_monthly_volume: '',
     
-    // Step 3: Account Details
+    // Step 3: KYC Documents
+    documents: {
+      business_license: null,
+      tax_id: null,
+      identity_proof: null,
+      bank_statement: null,
+      signed_agreement: null
+    },
+    
+    // Step 4: Account Details
     password: '',
     confirm_password: '',
     
-    // Step 4: Agreement
+    // Step 5: Agreement
     terms_accepted: false,
     privacy_accepted: false
+  });
+
+  const [uploadedFiles, setUploadedFiles] = useState({
+    business_license: null,
+    tax_id: null,
+    identity_proof: null,
+    bank_statement: null,
+    signed_agreement: null
   });
 
   const handleInputChange = (e) => {
