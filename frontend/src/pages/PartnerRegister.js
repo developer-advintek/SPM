@@ -132,7 +132,7 @@ export const PartnerRegister = () => {
     }
 
     try {
-      // Create user account
+      // Create user account (initially inactive until approved)
       const userResponse = await axios.post(`${API}/auth/register`, {
         email: formData.contact_email,
         full_name: formData.contact_name,
@@ -140,30 +140,42 @@ export const PartnerRegister = () => {
         role: 'partner'
       });
 
-      // Create partner profile
-      await axios.post(`${API}/partners/register`, {
-        company_name: formData.company_name,
-        contact_name: formData.contact_name,
-        contact_email: formData.contact_email,
-        phone: formData.phone,
-        website: formData.website,
-        business_type: formData.business_type,
-        years_in_business: formData.years_in_business,
-        number_of_employees: formData.number_of_employees,
-        expected_monthly_volume: formData.expected_monthly_volume,
-        user_id: userResponse.data.user.id
+      // Upload documents to backend
+      const formDataToSend = new FormData();
+      formDataToSend.append('company_name', formData.company_name);
+      formDataToSend.append('contact_name', formData.contact_name);
+      formDataToSend.append('contact_email', formData.contact_email);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('website', formData.website);
+      formDataToSend.append('business_type', formData.business_type);
+      formDataToSend.append('years_in_business', formData.years_in_business);
+      formDataToSend.append('number_of_employees', formData.number_of_employees);
+      formDataToSend.append('expected_monthly_volume', formData.expected_monthly_volume);
+      formDataToSend.append('user_id', userResponse.data.user.id);
+
+      // Append documents
+      Object.keys(uploadedFiles).forEach(key => {
+        if (uploadedFiles[key]) {
+          formDataToSend.append(key, uploadedFiles[key]);
+        }
       });
 
-      toast.success('Partner registration successful! Redirecting to login...');
+      await axios.post(`${API}/partners/register`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      toast.success('Registration submitted! Your application is pending admin approval. You will receive an email once approved.');
       setTimeout(() => {
         navigate('/login');
-      }, 2000);
+      }, 3000);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed. Please try again.');
     }
   };
 
-  const progressPercentage = (step / 4) * 100;
+  const progressPercentage = (step / 5) * 100;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
