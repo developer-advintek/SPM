@@ -55,17 +55,27 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Glassmorphism cards */
 [class*="card"], [data-testid*="card"] {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(30, 41, 59, 0.7) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
   box-shadow: 
-    0 8px 32px 0 rgba(0, 0, 0, 0.2),
+    0 8px 32px 0 rgba(0, 0, 0, 0.3),
     inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
   border-radius: 16px !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+}
+
+/* Dialog specific styling for better visibility */
+[role="dialog"] {
+  background: rgba(30, 41, 59, 0.95) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 
+    0 20px 60px 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 [class*="card"]::before {
