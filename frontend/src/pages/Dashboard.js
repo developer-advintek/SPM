@@ -147,14 +147,14 @@ export const Dashboard = () => {
                 {transactions.length > 0 ? (
                   <div className="space-y-3">
                     {transactions.slice(0, 10).map((txn, idx) => (
-                      <div key={txn.id} className="flex justify-between items-center p-3 bg-slate-50 rounded" data-testid={`transaction-item-${idx}`}>
+                      <div key={txn.id} className="flex justify-between items-center p-3 bg-slate-700/30 border border-slate-600/30 rounded-lg" data-testid={`transaction-item-${idx}`}>
                         <div>
-                          <p className="font-medium">{txn.sku}</p>
-                          <p className="text-sm text-slate-600">Qty: {txn.quantity}</p>
+                          <p className="font-medium text-slate-100">{txn.sku}</p>
+                          <p className="text-sm text-slate-300">Qty: {txn.quantity}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">${parseFloat(txn.total_amount).toFixed(2)}</p>
-                          <Badge variant={txn.status === 'processed' ? 'default' : 'secondary'}>
+                          <p className="font-bold text-blue-300">${parseFloat(txn.total_amount).toFixed(2)}</p>
+                          <Badge className={txn.status === 'processed' ? 'bg-green-500/20 text-green-300 border-green-500/40' : 'bg-slate-500/20 text-slate-300 border-slate-500/40'}>
                             {txn.status}
                           </Badge>
                         </div>
