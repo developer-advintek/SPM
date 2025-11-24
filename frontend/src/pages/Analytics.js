@@ -95,22 +95,22 @@ export const Analytics = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded" data-testid="risk-item-variance">
+                  <div className="p-4 bg-yellow-500/20 border border-yellow-400/40 rounded-lg backdrop-blur-sm" data-testid="risk-item-variance">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-semibold">Payout Variance Detected</p>
-                        <p className="text-sm text-slate-600">Q1 2025 payouts are 8% above forecast</p>
+                        <p className="font-semibold text-yellow-100">Payout Variance Detected</p>
+                        <p className="text-sm text-yellow-200/80">Q1 2025 payouts are 8% above forecast</p>
                       </div>
-                      <Badge variant="secondary">Medium</Badge>
+                      <Badge className="bg-yellow-400/30 text-yellow-100 border-yellow-400/50">Medium</Badge>
                     </div>
                   </div>
-                  <div className="p-3 bg-green-50 border border-green-200 rounded" data-testid="risk-item-attainment">
+                  <div className="p-4 bg-green-500/20 border border-green-400/40 rounded-lg backdrop-blur-sm" data-testid="risk-item-attainment">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-semibold">Strong Attainment Trend</p>
-                        <p className="text-sm text-slate-600">Team is on track to exceed annual targets</p>
+                        <p className="font-semibold text-green-100">Strong Attainment Trend</p>
+                        <p className="text-sm text-green-200/80">Team is on track to exceed annual targets</p>
                       </div>
-                      <Badge variant="default">Positive</Badge>
+                      <Badge className="bg-green-400/30 text-green-100 border-green-400/50">Positive</Badge>
                     </div>
                   </div>
                 </div>
