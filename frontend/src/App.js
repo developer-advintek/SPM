@@ -82,6 +82,11 @@ const Navigation = () => {
               <Link to="/tickets" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-tickets">
                 Support
               </Link>
+              {(user.role === 'admin' || user.role === 'manager') && (
+                <Link to="/users" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-users">
+                  Users
+                </Link>
+              )}
             </div>
           </div>
           <div className="flex items-center space-x-4">
