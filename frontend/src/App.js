@@ -132,10 +132,10 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/partner-hub"
+          path="/partners"
           element={
             <ProtectedRoute>
-              <PartnerHub />
+              <Partners />
             </ProtectedRoute>
           }
         />
