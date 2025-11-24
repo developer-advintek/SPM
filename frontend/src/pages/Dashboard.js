@@ -55,32 +55,50 @@ export const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card data-testid="card-total-earnings">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-slate-600">Total Earnings</CardTitle>
+          <Card data-testid="card-total-earnings" className="group hover:scale-105">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Total Earnings</CardTitle>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/50 group-hover:shadow-green-500/70 transition-shadow">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600" data-testid="total-earnings-value">
+              <div className="text-4xl font-bold text-green-400 mb-2" data-testid="total-earnings-value">
                 ${parseFloat(stats.totalEarnings).toFixed(2)}
               </div>
+              <p className="text-xs text-slate-400">↑ 12.5% from last month</p>
             </CardContent>
           </Card>
 
-          <Card data-testid="card-transactions">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-slate-600">Transactions</CardTitle>
+          <Card data-testid="card-transactions" className="group hover:scale-105">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Transactions</CardTitle>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/50 group-hover:shadow-blue-500/70 transition-shadow">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold" data-testid="transaction-count">{stats.transactionCount}</div>
+              <div className="text-4xl font-bold text-blue-400 mb-2" data-testid="transaction-count">{stats.transactionCount}</div>
+              <p className="text-xs text-slate-400">Active this period</p>
             </CardContent>
           </Card>
 
-          <Card data-testid="card-attainment">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-slate-600">Quota Attainment</CardTitle>
+          <Card data-testid="card-attainment" className="group hover:scale-105">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Quota Attainment</CardTitle>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50 group-hover:shadow-purple-500/70 transition-shadow">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600" data-testid="attainment-value">{stats.attainment}%</div>
+              <div className="text-4xl font-bold text-purple-400 mb-2" data-testid="attainment-value">{stats.attainment}%</div>
+              <p className="text-xs text-slate-400">Target: 100%</p>
             </CardContent>
           </Card>
         </div>
