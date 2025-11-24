@@ -50,7 +50,7 @@ export const PartnerHub = () => {
 
         <Card data-testid="onboarding-progress-card">
           <CardHeader>
-            <CardTitle>Onboarding Progress</CardTitle>
+            <CardTitle className="text-white text-lg font-bold">Onboarding Progress</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
