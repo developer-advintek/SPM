@@ -322,25 +322,114 @@ export const PlanDesigner = () => {
       </div>
 
       <Card className="mt-6 hover:scale-[1.01]" data-testid="visual-designer-card">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-slate-200">Visual Flow Designer</CardTitle>
+          <Button
+            variant="outline"
+            onClick={() => setShowVisualDesigner(!showVisualDesigner)}
+            data-testid="btn-toggle-visual"
+          >
+            {showVisualDesigner ? 'Hide Visual Designer' : 'Show Visual Designer'}
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-12 text-center bg-slate-800/20" data-testid="visual-flow-canvas">
-            <p className="text-slate-300 text-lg font-semibold">Visual flow chart builder</p>
-            <p className="text-sm text-slate-400 mt-2">Drag and drop rules to create commission logic flows</p>
-            <div className="mt-6 flex justify-center gap-4">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-blue-500/50" data-testid="flow-node-condition">
-                <span className="text-white">Condition</span>
+          {showVisualDesigner ? (
+            <div className="bg-slate-800/20 rounded-lg p-6 min-h-96" data-testid="visual-flow-canvas">
+              <div className="mb-4">
+                <h3 className="text-white font-semibold mb-2">Commission Plan Flow</h3>
+                <p className="text-sm text-slate-400">Visual representation of your commission rules</p>
               </div>
-              <div className="flex items-center">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-              </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-purple-500/50" data-testid="flow-node-action">
-                <span className="text-white">Action</span>
-              </div>
+
+              {plan.rules.length > 0 ? (
+                <div className="space-y-6">
+                  {plan.rules.sort((a, b) => a.priority - b.priority).map((rule, idx) => (
+                    <div key={rule.id} className="flex items-center gap-4" data-testid={`flow-rule-${idx}`}>
+                      {/* Priority Badge */}
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-lg">
+                        {rule.priority}
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="w-8 h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+
+                      {/* Condition Node */}
+                      <div className="flex-1 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-400/40 rounded-lg p-4 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">IF</span>
+                          <span className="font-semibold text-white capitalize">{rule.rule_type}</span>
+                        </div>
+                        <div className="text-xs text-blue-200 space-y-1">
+                          {rule.condition.product_ids.length > 0 && (
+                            <p>• {rule.condition.product_ids.length} product(s) selected</p>
+                          )}
+                          {rule.condition.min_amount && (
+                            <p>• Amount ≥ ${rule.condition.min_amount}</p>
+                          )}
+                          {rule.condition.max_amount && (
+                            <p>• Amount ≤ ${rule.condition.max_amount}</p>
+                          )}
+                          {!rule.condition.product_ids.length && !rule.condition.min_amount && !rule.condition.max_amount && (
+                            <p>• All transactions</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-green-500"></div>
+
+                      {/* Action Node */}
+                      <div className="flex-1 bg-gradient-to-br from-green-500/20 to-emerald-600/20 border border-green-400/40 rounded-lg p-4 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">THEN</span>
+                          <span className="font-semibold text-white">Apply Commission</span>
+                        </div>
+                        <div className="text-xs text-green-200 space-y-1">
+                          {rule.action.commission_rate && (
+                            <p>• Rate: {rule.action.commission_rate}%</p>
+                          )}
+                          {rule.action.bonus_amount && (
+                            <p>• Bonus: ${rule.action.bonus_amount}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Final Result */}
+                  <div className="flex items-center gap-4 justify-center mt-8">
+                    <div className="w-8 h-1 bg-gradient-to-r from-green-500 to-yellow-500"></div>
+                    <div className="bg-gradient-to-br from-yellow-500/20 to-orange-600/20 border border-yellow-400/40 rounded-lg p-4 backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">💰</span>
+                        <span className="font-semibold text-white">Final Commission Calculated</span>
+                      </div>
+                      <p className="text-xs text-yellow-200 mt-1">Based on highest priority matching rule</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-12 text-center">
+                  <p className="text-slate-300 text-lg font-semibold">No Rules Defined Yet</p>
+                  <p className="text-sm text-slate-400 mt-2">Add rules using the form builder to see the visual flow</p>
+                  <div className="mt-6 flex justify-center gap-4">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-blue-500/50 opacity-30">
+                      <span className="text-white">IF</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 opacity-30"></div>
+                    </div>
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg shadow-purple-500/50 opacity-30">
+                      <span className="text-white">THEN</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-slate-400">Click "Show Visual Designer" to see the flow visualization</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
