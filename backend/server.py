@@ -175,6 +175,40 @@ async def google_login(token: dict):
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# ============= USER MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/users", response_model=List[User])
+async def list_users(current_user: User = Depends(require_role(["admin", "manager"]))):
+    users = await db.users.find({}, {"_id": 0, "password": 0, "google_id": 0}).to_list(1000)
+    for u in users:
+        for key in ['created_at', 'updated_at']:
+            if key in u and isinstance(u[key], str):
+                u[key] = datetime.fromisoformat(u[key])
+    return users
+
+@api_router.patch("/users/{user_id}")
+async def update_user(user_id: str, update_data: dict, current_user: User = Depends(require_role(["admin"]))):
+    # Only allow updating specific fields
+    allowed_fields = ['active', 'role', 'territory_id', 'manager_id', 'full_name']
+    update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
+    
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await create_audit_log(current_user.id, "user_updated", "user", user_id, None, update_dict)
+    
+    return {"message": "User updated successfully"}
+
 # Helper function for audit logs
 async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
     audit = AuditLog(
