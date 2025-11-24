@@ -511,8 +511,8 @@ export const PartnerRegister = () => {
                 </>
               )}
 
-              {/* Step 4: Agreements */}
-              {step === 4 && (
+              {/* Step 5: Agreements */}
+              {step === 5 && (
                 <>
                   <div className="space-y-4">
                     <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg max-h-60 overflow-y-auto">
