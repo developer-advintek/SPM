@@ -474,6 +474,34 @@ select option {
   color: #e2e8f0 !important;
 }
 
+/* Enhanced visibility for all text elements */
+button, a, span, label, p, div, td, th {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Table headers - enhanced */
+thead th {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Navigation links enhanced */
+nav a {
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Tab list container */
+[role="tablist"] {
+  background: rgba(15, 23, 42, 0.5) !important;
+  padding: 4px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .App {
