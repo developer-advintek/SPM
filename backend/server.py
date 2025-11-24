@@ -209,6 +209,41 @@ async def update_user(user_id: str, update_data: dict, current_user: User = Depe
     
     return {"message": "User updated successfully"}
 
+# ============= PARTNER REGISTRATION ENDPOINTS =============
+
+@api_router.post("/partners/register")
+async def register_partner(partner_data: dict):
+    """Public endpoint for partner self-registration"""
+    # Create partner profile
+    partner = Partner(
+        company_name=partner_data.get('company_name'),
+        contact_name=partner_data.get('contact_name'),
+        contact_email=partner_data.get('contact_email'),
+        user_id=partner_data.get('user_id'),
+        tier='bronze',  # Default tier for new partners
+        status='onboarding',
+        onboarding_progress=25  # Started onboarding
+    )
+    
+    doc = partner.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    # Store additional registration data
+    doc['phone'] = partner_data.get('phone')
+    doc['website'] = partner_data.get('website')
+    doc['business_type'] = partner_data.get('business_type')
+    doc['years_in_business'] = partner_data.get('years_in_business')
+    doc['number_of_employees'] = partner_data.get('number_of_employees')
+    doc['expected_monthly_volume'] = partner_data.get('expected_monthly_volume')
+    
+    await db.partners.insert_one(doc)
+    
+    # Create audit log
+    await create_audit_log(partner.user_id, "partner_registered", "partner", partner.id, None, doc)
+    
+    return {"message": "Partner registered successfully", "partner_id": partner.id}
+
 # Helper function for audit logs
 async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
     audit = AuditLog(
