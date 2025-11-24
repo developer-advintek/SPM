@@ -301,17 +301,29 @@ table tbody td {
   padding: 16px !important;
 }
 
-/* Tabs with glow */
+/* Tabs with glow - ENHANCED VISIBILITY */
 [role="tablist"] button {
-  color: rgba(226, 232, 240, 0.7) !important;
+  color: #e2e8f0 !important;
   position: relative;
-  font-weight: 500;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 10px 20px !important;
+}
+
+[role="tablist"] button:hover {
+  color: #fff !important;
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
 }
 
 [role="tablist"] button[data-state="active"] {
   color: #fff !important;
-  background: rgba(99, 102, 241, 0.2) !important;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  font-weight: 700 !important;
 }
 
 /* Scrollbar */
