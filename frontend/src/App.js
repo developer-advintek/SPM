@@ -108,6 +108,7 @@ const AppContent = () => {
       <Navigation />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/partner-register" element={<PartnerRegister />} />
         <Route
           path="/dashboard"
           element={
