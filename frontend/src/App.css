@@ -383,6 +383,37 @@ label {
   }
 }
 
+/* Form sections for better visibility */
+form > div {
+  margin-bottom: 1.25rem;
+}
+
+form label + input,
+form label + select,
+form label + textarea {
+  margin-top: 0.5rem;
+}
+
+/* Select dropdown styling */
+select option {
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 8px;
+}
+
+/* Description text */
+[class*="Description"], .text-sm {
+  color: rgba(226, 232, 240, 0.85) !important;
+  line-height: 1.6;
+}
+
+/* Section headers in cards */
+.space-y-4 > div > p:first-child,
+.space-y-3 > div > p:first-child {
+  font-weight: 600;
+  color: #e2e8f0 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .App {
