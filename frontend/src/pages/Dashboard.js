@@ -141,7 +141,7 @@ export const Dashboard = () => {
           <TabsContent value="transactions">
             <Card data-testid="transactions-content">
               <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
+                <CardTitle className="text-white text-xl font-bold">Recent Transactions</CardTitle>
               </CardHeader>
               <CardContent>
                 {transactions.length > 0 ? (
