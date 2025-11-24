@@ -138,6 +138,9 @@ export const Login = () => {
             >
               {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
             </button>
+            <Link to="/partner-register" className="text-sm text-purple-400 hover:underline" data-testid="link-partner-register">
+              Are you a Partner? Register here
+            </Link>
           </CardFooter>
         </form>
       </Card>
