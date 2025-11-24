@@ -82,7 +82,7 @@ export const PartnerHub = () => {
 
         <Card data-testid="quick-actions-card">
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle className="text-white text-lg font-bold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
