@@ -110,26 +110,28 @@ export const UserManagement = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label>Full Name</Label>
+                <Label className="text-slate-100 font-semibold">Full Name</Label>
                 <Input
                   data-testid="input-fullname"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   required
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label className="text-slate-100 font-semibold">Email</Label>
                 <Input
                   data-testid="input-email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label>Password</Label>
+                <Label className="text-slate-100 font-semibold">Password</Label>
                 <Input
                   data-testid="input-password"
                   type="password"
@@ -137,13 +139,14 @@ export const UserManagement = () => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   placeholder="Minimum 6 characters"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label>Role</Label>
+                <Label className="text-slate-100 font-semibold">Role</Label>
                 <select
                   data-testid="select-role"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 border rounded-lg bg-white/10 border-white/30 text-white"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
@@ -155,21 +158,23 @@ export const UserManagement = () => {
                 </select>
               </div>
               <div>
-                <Label>Territory ID (Optional)</Label>
+                <Label className="text-slate-100 font-semibold">Territory ID (Optional)</Label>
                 <Input
                   data-testid="input-territory"
                   value={formData.territory_id}
                   onChange={(e) => setFormData({ ...formData, territory_id: e.target.value })}
                   placeholder="Leave blank if not applicable"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label>Manager ID (Optional)</Label>
+                <Label className="text-slate-100 font-semibold">Manager ID (Optional)</Label>
                 <Input
                   data-testid="input-manager"
                   value={formData.manager_id}
                   onChange={(e) => setFormData({ ...formData, manager_id: e.target.value })}
                   placeholder="Leave blank for no manager"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-slate-400"
                 />
               </div>
               <Button type="submit" className="w-full" data-testid="btn-submit-user">
