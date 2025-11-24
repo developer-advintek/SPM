@@ -148,10 +148,10 @@ export const PlanDesigner = () => {
                 <h3 className="font-semibold mb-3 text-slate-200">Current Rules ({plan.rules.length})</h3>
                 <div className="space-y-2" data-testid="rules-list">
                   {plan.rules.map((rule, idx) => (
-                    <div key={rule.id} className="p-3 bg-slate-700/30 rounded border border-purple-500/30" data-testid={`rule-item-${idx}`}>
+                    <div key={rule.id} className="p-3 bg-purple-500/20 border border-purple-400/40 rounded-lg backdrop-blur-sm" data-testid={`rule-item-${idx}`}>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium capitalize text-purple-300">{rule.rule_type}</span>
-                        <span className="text-sm text-slate-400">Priority: {rule.priority}</span>
+                        <span className="font-medium capitalize text-purple-200">{rule.rule_type}</span>
+                        <span className="text-sm text-purple-300">Priority: {rule.priority}</span>
                       </div>
                     </div>
                   ))}
