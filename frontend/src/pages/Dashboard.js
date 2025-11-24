@@ -120,12 +120,12 @@ export const Dashboard = () => {
                 {earnings && earnings.calculations && earnings.calculations.length > 0 ? (
                   <div className="space-y-3">
                     {earnings.calculations.slice(0, 10).map((calc, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 rounded" data-testid={`earning-item-${idx}`}>
+                      <div key={idx} className="flex justify-between items-center p-3 bg-slate-700/30 border border-slate-600/30 rounded-lg" data-testid={`earning-item-${idx}`}>
                         <div>
-                          <p className="font-medium">Transaction: {calc.transaction_id.substring(0, 8)}</p>
-                          <p className="text-sm text-slate-600">Base: ${parseFloat(calc.base_amount).toFixed(2)}</p>
+                          <p className="font-medium text-slate-100">Transaction: {calc.transaction_id.substring(0, 8)}</p>
+                          <p className="text-sm text-slate-300">Base: ${parseFloat(calc.base_amount).toFixed(2)}</p>
                         </div>
-                        <Badge variant="secondary" data-testid={`earning-amount-${idx}`}>
+                        <Badge className="bg-green-500/20 text-green-300 border-green-500/40" data-testid={`earning-amount-${idx}`}>
                           ${parseFloat(calc.final_amount).toFixed(2)}
                         </Badge>
                       </div>
