@@ -310,12 +310,28 @@ table tbody td {
 }
 
 /* Text colors for dark theme */
-p, span, div, label {
+p, span, div {
   color: #e2e8f0;
+}
+
+label {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  margin-bottom: 0.5rem !important;
+  display: block !important;
 }
 
 .text-slate-600 {
   color: rgba(226, 232, 240, 0.7) !important;
+}
+
+.text-slate-400 {
+  color: rgba(203, 213, 225, 0.9) !important;
+}
+
+.text-slate-300 {
+  color: rgba(226, 232, 240, 1) !important;
 }
 
 /* Loading animation */
