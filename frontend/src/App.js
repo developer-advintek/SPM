@@ -179,6 +179,14 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/partner-approvals"
+          element={
+            <ProtectedRoute>
+              <PartnerApprovals />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <Toaster position="top-right" data-testid="toast-container" />
