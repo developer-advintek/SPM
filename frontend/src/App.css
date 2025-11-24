@@ -177,11 +177,24 @@ h3, h4, h5, h6 {
   font-weight: 600 !important;
 }
 
-/* Card titles */
+/* Card titles - ENHANCED */
 [class*="CardTitle"], [data-testid*="card"] h3, [data-testid*="card"] h2 {
-  color: #f8fafc !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Card headers */
+[class*="CardHeader"] {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem !important;
+}
+
+/* All headings enhanced */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
 }
 
 /* Enhanced navigation */
