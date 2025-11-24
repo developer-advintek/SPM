@@ -191,16 +191,16 @@ export const Analytics = () => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-slate-50 rounded">
-                  <h3 className="font-semibold mb-3">Variance Report</h3>
+                <div className="p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+                  <h3 className="font-semibold mb-3 text-slate-100">Variance Report</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span>Current Plan vs Realistic</span>
-                      <span className="text-green-600 font-semibold">+12%</span>
+                      <span className="text-slate-300">Current Plan vs Realistic</span>
+                      <span className="text-green-400 font-semibold">+12%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Payout Variance</span>
-                      <span className="text-blue-600 font-semibold">$20K</span>
+                      <span className="text-slate-300">Payout Variance</span>
+                      <span className="text-blue-400 font-semibold">$20K</span>
                     </div>
                   </div>
                 </div>
