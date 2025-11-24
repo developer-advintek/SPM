@@ -206,18 +206,20 @@ export const PartnerRegister = () => {
         <Card data-testid="partner-register-card">
           <CardHeader>
             <CardTitle className="text-white text-2xl">
-              Step {step} of 4: {
+              Step {step} of 5: {
                 step === 1 ? 'Company Information' :
                 step === 2 ? 'Business Details' :
-                step === 3 ? 'Account Setup' :
+                step === 3 ? 'KYC Documents' :
+                step === 4 ? 'Account Setup' :
                 'Terms & Agreements'
               }
             </CardTitle>
             <CardDescription className="text-slate-300">
               {step === 1 && 'Tell us about your company'}
               {step === 2 && 'Provide your business information'}
-              {step === 3 && 'Create your login credentials'}
-              {step === 4 && 'Review and accept our terms'}
+              {step === 3 && 'Upload required verification documents'}
+              {step === 4 && 'Create your login credentials'}
+              {step === 5 && 'Review and accept our terms'}
             </CardDescription>
           </CardHeader>
 
