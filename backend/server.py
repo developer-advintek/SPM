@@ -213,16 +213,16 @@ async def update_user(user_id: str, update_data: dict, current_user: User = Depe
 
 @api_router.post("/partners/register")
 async def register_partner(partner_data: dict):
-    """Public endpoint for partner self-registration"""
-    # Create partner profile
+    """Public endpoint for partner self-registration with documents"""
+    # Create partner profile with pending_review status
     partner = Partner(
         company_name=partner_data.get('company_name'),
         contact_name=partner_data.get('contact_name'),
         contact_email=partner_data.get('contact_email'),
         user_id=partner_data.get('user_id'),
-        tier='bronze',  # Default tier for new partners
-        status='onboarding',
-        onboarding_progress=25  # Started onboarding
+        tier='bronze',
+        status='pending_review',  # Requires admin approval
+        onboarding_progress=50
     )
     
     doc = partner.model_dump()
@@ -237,12 +237,155 @@ async def register_partner(partner_data: dict):
     doc['number_of_employees'] = partner_data.get('number_of_employees')
     doc['expected_monthly_volume'] = partner_data.get('expected_monthly_volume')
     
+    # Store document information (in production, upload to cloud storage)
+    doc['documents'] = {
+        'business_license': partner_data.get('business_license', 'uploaded'),
+        'tax_id': partner_data.get('tax_id', 'uploaded'),
+        'identity_proof': partner_data.get('identity_proof', 'uploaded'),
+        'bank_statement': partner_data.get('bank_statement'),
+        'signed_agreement': partner_data.get('signed_agreement')
+    }
+    
+    doc['review_history'] = []
+    doc['submitted_at'] = datetime.now(timezone.utc).isoformat()
+    
     await db.partners.insert_one(doc)
+    
+    # Deactivate user until approved
+    await db.users.update_one(
+        {"id": partner.user_id},
+        {"$set": {"active": False}}
+    )
     
     # Create audit log
     await create_audit_log(partner.user_id, "partner_registered", "partner", partner.id, None, doc)
     
-    return {"message": "Partner registered successfully", "partner_id": partner.id}
+    # TODO: Send notification to admins about new partner registration
+    
+    return {"message": "Partner registered successfully. Pending admin approval.", "partner_id": partner.id}
+
+@api_router.get("/partners/pending")
+async def get_pending_partners(current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Get all partners for review"""
+    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    return partners
+
+@api_router.post("/partners/{partner_id}/approve")
+async def approve_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Approve partner application"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Update partner status
+    update_data = {
+        "status": "approved",
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+        "approved_by": current_user.id,
+        "onboarding_progress": 100,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Add to review history
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "approved",
+        "comments": review_data.get('comments', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    
+    # Activate user account
+    await db.users.update_one(
+        {"id": partner['user_id']},
+        {"$set": {"active": True}}
+    )
+    
+    # Create audit log
+    await create_audit_log(current_user.id, "partner_approved", "partner", partner_id, partner, update_data)
+    
+    # TODO: Send approval email to partner
+    
+    return {"message": "Partner approved successfully"}
+
+@api_router.post("/partners/{partner_id}/reject")
+async def reject_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Reject partner application"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Update partner status
+    update_data = {
+        "status": "rejected",
+        "rejection_reason": review_data.get('reason', 'Application did not meet requirements'),
+        "rejected_at": datetime.now(timezone.utc).isoformat(),
+        "rejected_by": current_user.id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Add to review history
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "rejected",
+        "comments": review_data.get('reason', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(current_user.id, "partner_rejected", "partner", partner_id, partner, update_data)
+    
+    # TODO: Send rejection email to partner
+    
+    return {"message": "Partner rejected"}
+
+@api_router.post("/partners/{partner_id}/request-more")
+async def request_more_info(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Request additional information from partner"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Update partner status
+    update_data = {
+        "status": "more_info_needed",
+        "info_request": review_data.get('message', ''),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Add to review history
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "requested_more_info",
+        "comments": review_data.get('message', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(current_user.id, "partner_info_requested", "partner", partner_id, partner, update_data)
+    
+    # TODO: Send email to partner requesting more info
+    
+    return {"message": "Information request sent to partner"}
 
 # Helper function for audit logs
 async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
