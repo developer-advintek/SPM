@@ -66,7 +66,7 @@ const Navigation = () => {
                   </Link>
                 </>
               )}
-              {user.role === 'partner' && (
+              {(user.role === 'partner' || user.role === 'admin' || user.role === 'manager') && (
                 <Link to="/partner-hub" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partner-hub">
                   Partner Hub
                 </Link>
