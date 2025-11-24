@@ -66,7 +66,10 @@ export const ApprovalCenter = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto" data-testid="approval-center-page">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Approval Center</h1>
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>Approval Center</h1>
+        <p className="text-slate-400">Multi-level workflow approvals & delegation</p>
+      </div>
 
       <Tabs defaultValue="pending" className="w-full">
         <TabsList>
