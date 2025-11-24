@@ -172,6 +172,18 @@ h1, h2 {
   text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
 }
 
+h3, h4, h5, h6 {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+}
+
+/* Card titles */
+[class*="CardTitle"], [data-testid*="card"] h3, [data-testid*="card"] h2 {
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+
 /* Enhanced navigation */
 nav {
   background: rgba(255, 255, 255, 0.08) !important;
