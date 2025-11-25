@@ -12,6 +12,8 @@ import { Tickets } from './pages/Tickets';
 import { UserManagement } from './pages/UserManagement';
 import { PartnerRegister } from './pages/PartnerRegister';
 import { Partners } from './pages/Partners';
+import SpiffCenter from './pages/SpiffCenter';
+import VendorTiers from './pages/VendorTiers';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
