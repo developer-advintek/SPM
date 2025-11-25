@@ -183,6 +183,22 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/spiff-center"
+          element={
+            <ProtectedRoute>
+              <SpiffCenter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor-tiers"
+          element={
+            <ProtectedRoute>
+              <VendorTiers />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <Toaster position="top-right" data-testid="toast-container" />
