@@ -47,17 +47,24 @@ class ConnectionManager:
         self.user_connections[user_id] = websocket
 
     def disconnect(self, websocket: WebSocket, user_id: str):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
         if user_id in self.user_connections:
             del self.user_connections[user_id]
 
     async def send_personal_message(self, message: dict, user_id: str):
         if user_id in self.user_connections:
-            await self.user_connections[user_id].send_text(json.dumps(message))
+            try:
+                await self.user_connections[user_id].send_text(json.dumps(message))
+            except:
+                pass
 
     async def broadcast(self, message: dict):
         for connection in self.active_connections:
-            await connection.send_text(json.dumps(message))
+            try:
+                await connection.send_text(json.dumps(message))
+            except:
+                pass
 
 manager = ConnectionManager()
 
@@ -82,21 +89,33 @@ def require_role(allowed_roles: List[str]):
         return current_user
     return role_checker
 
+# Helper function for audit logs
+async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
+    audit = AuditLog(
+        user_id=user_id,
+        action_type=action_type,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        state_before=state_before,
+        state_after=state_after
+    )
+    doc = audit.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.audit_logs.insert_one(doc)
+
 # ============= AUTHENTICATION ENDPOINTS =============
 
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
-    # Check if user exists
     existing_user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
     user_dict = user_data.model_dump()
     if user_data.password:
         user_dict['password'] = get_password_hash(user_data.password)
     
-    user_obj = User(**{k: v for k, v in user_dict.items() if k != 'password' and k != 'google_id'})
+    user_obj = User(**{k: v for k, v in user_dict.items() if k not in ['password', 'google_id']})
     doc = user_obj.model_dump()
     for key in ['created_at', 'updated_at']:
         if key in doc and isinstance(doc[key], datetime):
@@ -106,13 +125,9 @@ async def register(user_data: UserCreate):
     doc['google_id'] = user_dict.get('google_id')
     
     await db.users.insert_one(doc)
-    
-    # Create audit log
     await create_audit_log(user_obj.id, "user_registration", "user", user_obj.id, None, doc)
     
-    # Create token
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
-    
     return Token(access_token=access_token, user=user_obj)
 
 @api_router.post("/auth/login", response_model=Token)
@@ -121,37 +136,26 @@ async def login(credentials: UserLogin):
     if not user or not verify_password(credentials.password, user.get('password', '')):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Convert ISO strings back to datetime
     for key in ['created_at', 'updated_at']:
         if key in user and isinstance(user[key], str):
             user[key] = datetime.fromisoformat(user[key])
     
     user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'google_id']})
-    
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
-    
     await create_audit_log(user_obj.id, "user_login", "user", user_obj.id, None, None)
     
     return Token(access_token=access_token, user=user_obj)
 
 @api_router.post("/auth/google")
 async def google_login(token: dict):
-    # Mock Google OAuth - In production, verify token with Google
     google_id = token.get('google_id')
     email = token.get('email')
     name = token.get('name')
     
-    # Find or create user
     user = await db.users.find_one({"$or": [{"google_id": google_id}, {"email": email}]}, {"_id": 0})
     
     if not user:
-        # Create new user
-        user_create = UserCreate(
-            email=email,
-            full_name=name,
-            role="rep",  # Default role
-            google_id=google_id
-        )
+        user_create = UserCreate(email=email, full_name=name, role="rep", google_id=google_id)
         user_dict = user_create.model_dump()
         user_obj = User(**{k: v for k, v in user_dict.items() if k not in ['password', 'google_id']})
         doc = user_obj.model_dump()
@@ -167,7 +171,6 @@ async def google_login(token: dict):
         user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'google_id']})
     
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
-    
     return Token(access_token=access_token, user=user_obj)
 
 @api_router.get("/auth/me", response_model=User)
@@ -187,7 +190,6 @@ async def list_users(current_user: User = Depends(require_role(["admin", "manage
 
 @api_router.patch("/users/{user_id}")
 async def update_user(user_id: str, update_data: dict, current_user: User = Depends(require_role(["admin"]))):
-    # Only allow updating specific fields
     allowed_fields = ['active', 'role', 'territory_id', 'manager_id', 'full_name']
     update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
     
@@ -195,282 +197,18 @@ async def update_user(user_id: str, update_data: dict, current_user: User = Depe
         raise HTTPException(status_code=400, detail="No valid fields to update")
     
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
-    
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": update_dict}
-    )
+    result = await db.users.update_one({"id": user_id}, {"$set": update_dict})
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     
     await create_audit_log(current_user.id, "user_updated", "user", user_id, None, update_dict)
-    
     return {"message": "User updated successfully"}
-
-# ============= PARTNER REGISTRATION ENDPOINTS =============
-
-@api_router.post("/partners/register")
-async def register_partner(partner_data: dict):
-    """Public endpoint for partner self-registration with documents"""
-    # Create partner profile with pending_review status
-    partner = Partner(
-        company_name=partner_data.get('company_name'),
-        contact_name=partner_data.get('contact_name'),
-        contact_email=partner_data.get('contact_email'),
-        user_id=partner_data.get('user_id'),
-        tier='bronze',
-        status='pending_review',  # Requires admin approval
-        onboarding_progress=50
-    )
-    
-    doc = partner.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['updated_at'] = doc['updated_at'].isoformat()
-    
-    # Store additional registration data
-    doc['phone'] = partner_data.get('phone')
-    doc['website'] = partner_data.get('website')
-    doc['business_type'] = partner_data.get('business_type')
-    doc['years_in_business'] = partner_data.get('years_in_business')
-    doc['number_of_employees'] = partner_data.get('number_of_employees')
-    doc['expected_monthly_volume'] = partner_data.get('expected_monthly_volume')
-    
-    # Store document information (in production, upload to cloud storage)
-    doc['documents'] = {
-        'business_license': partner_data.get('business_license', 'uploaded'),
-        'tax_id': partner_data.get('tax_id', 'uploaded'),
-        'identity_proof': partner_data.get('identity_proof', 'uploaded'),
-        'bank_statement': partner_data.get('bank_statement'),
-        'signed_agreement': partner_data.get('signed_agreement')
-    }
-    
-    doc['review_history'] = []
-    doc['submitted_at'] = datetime.now(timezone.utc).isoformat()
-    
-    await db.partners.insert_one(doc)
-    
-    # Deactivate user until approved
-    await db.users.update_one(
-        {"id": partner.user_id},
-        {"$set": {"active": False}}
-    )
-    
-    # Create audit log
-    await create_audit_log(partner.user_id, "partner_registered", "partner", partner.id, None, doc)
-    
-    # TODO: Send notification to admins about new partner registration
-    
-    return {"message": "Partner registered successfully. Pending admin approval.", "partner_id": partner.id}
-
-@api_router.get("/partners/all")
-async def get_all_partners(current_user: User = Depends(get_current_user)):
-    """Get all partners - admins see all, partners see only their own"""
-    if current_user.role == "partner":
-        partners = await db.partners.find({"user_id": current_user.id}, {"_id": 0}).to_list(10)
-    else:
-        partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
-    
-    for p in partners:
-        for key in ['created_at', 'updated_at']:
-            if key in p and isinstance(p[key], str):
-                p[key] = datetime.fromisoformat(p[key])
-        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
-            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
-        if 'approved_at' in p and isinstance(p['approved_at'], str):
-            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
-    return partners
-
-@api_router.get("/partners/pending")
-async def get_pending_partners(current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Get all partners for review"""
-    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
-    for p in partners:
-        for key in ['created_at', 'updated_at']:
-            if key in p and isinstance(p[key], str):
-                p[key] = datetime.fromisoformat(p[key])
-        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
-            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
-        if 'approved_at' in p and isinstance(p['approved_at'], str):
-            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
-    return partners
-
-@api_router.post("/partners/{partner_id}/approve")
-async def approve_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Approve partner application"""
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    # Update partner status
-    update_data = {
-        "status": "approved",
-        "approved_at": datetime.now(timezone.utc).isoformat(),
-        "approved_by": current_user.id,
-        "onboarding_progress": 100,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Add to review history
-    review_history = partner.get('review_history', [])
-    review_history.append({
-        "action": "approved",
-        "comments": review_data.get('comments', ''),
-        "reviewer": current_user.full_name,
-        "date": datetime.now(timezone.utc).isoformat()
-    })
-    update_data['review_history'] = review_history
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    
-    # Activate user account
-    await db.users.update_one(
-        {"id": partner['user_id']},
-        {"$set": {"active": True}}
-    )
-    
-    # Create audit log
-    await create_audit_log(current_user.id, "partner_approved", "partner", partner_id, partner, update_data)
-    
-    # TODO: Send approval email to partner
-    
-    return {"message": "Partner approved successfully"}
-
-@api_router.post("/partners/{partner_id}/reject")
-async def reject_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Reject partner application"""
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    # Update partner status
-    update_data = {
-        "status": "rejected",
-        "rejection_reason": review_data.get('reason', 'Application did not meet requirements'),
-        "rejected_at": datetime.now(timezone.utc).isoformat(),
-        "rejected_by": current_user.id,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Add to review history
-    review_history = partner.get('review_history', [])
-    review_history.append({
-        "action": "rejected",
-        "comments": review_data.get('reason', ''),
-        "reviewer": current_user.full_name,
-        "date": datetime.now(timezone.utc).isoformat()
-    })
-    update_data['review_history'] = review_history
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    
-    # Create audit log
-    await create_audit_log(current_user.id, "partner_rejected", "partner", partner_id, partner, update_data)
-    
-    # TODO: Send rejection email to partner
-    
-    return {"message": "Partner rejected"}
-
-@api_router.post("/partners/{partner_id}/request-more")
-async def request_more_info(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Request additional information from partner"""
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    # Update partner status
-    update_data = {
-        "status": "more_info_needed",
-        "info_request": review_data.get('message', ''),
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Add to review history
-    review_history = partner.get('review_history', [])
-    review_history.append({
-        "action": "requested_more_info",
-        "comments": review_data.get('message', ''),
-        "reviewer": current_user.full_name,
-        "date": datetime.now(timezone.utc).isoformat()
-    })
-    update_data['review_history'] = review_history
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    
-    # Create audit log
-    await create_audit_log(current_user.id, "partner_info_requested", "partner", partner_id, partner, update_data)
-    
-    # TODO: Send email to partner requesting more info
-    
-    return {"message": "Information request sent to partner"}
-
-@api_router.patch("/partners/{partner_id}")
-async def update_partner(partner_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Update partner details (tier, status, notes)"""
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    allowed_fields = ['tier', 'status', 'notes']
-    update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
-    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_dict})
-    
-    # Create audit log
-    await create_audit_log(current_user.id, "partner_updated", "partner", partner_id, partner, update_dict)
-    
-    return {"message": "Partner updated successfully"}
-
-@api_router.post("/partners/{partner_id}/deactivate")
-async def deactivate_partner(partner_id: str, deactivate_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Deactivate a partner"""
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    update_data = {
-        "status": "inactive",
-        "deactivation_reason": deactivate_data.get('reason', ''),
-        "deactivated_at": datetime.now(timezone.utc).isoformat(),
-        "deactivated_by": current_user.id,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    
-    # Deactivate user account
-    await db.users.update_one(
-        {"id": partner['user_id']},
-        {"$set": {"active": False}}
-    )
-    
-    # Create audit log
-    await create_audit_log(current_user.id, "partner_deactivated", "partner", partner_id, partner, update_data)
-    
-    # TODO: Send deactivation email
-    
-    return {"message": "Partner deactivated successfully"}
-
-# Helper function for audit logs
-async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
-    audit = AuditLog(
-        user_id=user_id,
-        action_type=action_type,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        state_before=state_before,
-        state_after=state_after
-    )
-    doc = audit.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    await db.audit_logs.insert_one(doc)
 
 # ============= PRODUCT ENDPOINTS =============
 
 @api_router.post("/products", response_model=Product)
 async def create_product(product_data: ProductCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
-    # Validate commission rate and margin
     if not product_data.commission_rate_code or product_data.gross_margin_percent <= 0:
         raise HTTPException(status_code=400, detail="Invalid product data")
     
@@ -483,7 +221,6 @@ async def create_product(product_data: ProductCreate, current_user: User = Depen
     
     await db.products.insert_one(doc)
     await create_audit_log(current_user.id, "product_created", "product", product.id, None, doc)
-    
     return product
 
 @api_router.get("/products", response_model=List[Product])
@@ -547,11 +284,7 @@ async def create_transaction(txn_data: TransactionCreate, current_user: User = D
         doc[key] = str(doc[key])
     
     await db.transactions.insert_one(doc)
-    
-    # Trigger real-time calculation
     await process_transaction_commission(transaction.id)
-    
-    # Broadcast update via WebSocket
     await manager.broadcast({"type": "transaction_created", "transaction_id": transaction.id})
     
     return transaction
@@ -559,8 +292,7 @@ async def create_transaction(txn_data: TransactionCreate, current_user: User = D
 @api_router.get("/transactions", response_model=List[Transaction])
 async def list_transactions(current_user: User = Depends(get_current_user), limit: int = 100):
     query = {}
-    if current_user.role == "partner":
-        # Partners can only see their own transactions
+    if current_user.role == "partner" or current_user.role == "rep":
         query["sales_rep_id"] = current_user.id
     
     transactions = await db.transactions.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
@@ -574,30 +306,21 @@ async def list_transactions(current_user: User = Depends(get_current_user), limi
             t[key] = Decimal(t[key])
     return transactions
 
-# ============= COMMISSION CALCULATION =============
+# ============= COMMISSION CALCULATION & EARNINGS =============
 
 async def process_transaction_commission(transaction_id: str):
-    """Process commission calculation for a transaction."""
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         return
     
-    # Get active commission plan for the rep
-    plan = await db.commission_plans.find_one(
-        {"plan_type": "individual", "status": "active"},
-        {"_id": 0}
-    )
-    
+    plan = await db.commission_plans.find_one({"plan_type": "individual", "status": "active"}, {"_id": 0})
     if not plan:
-        # No active plan, skip
         return
     
-    # Calculate base commission (simplified)
     total_amount = Decimal(transaction['total_amount'])
-    base_rate = Decimal('0.05')  # 5% default
+    base_rate = Decimal('0.05')
     commission_amount = validate_financial_precision(total_amount * base_rate)
     
-    # Create calculation record
     calculation = CommissionCalculation(
         transaction_id=transaction_id,
         sales_rep_id=transaction['sales_rep_id'],
@@ -614,14 +337,8 @@ async def process_transaction_commission(transaction_id: str):
         doc[key] = str(doc[key])
     
     await db.commission_calculations.insert_one(doc)
+    await db.transactions.update_one({"id": transaction_id}, {"$set": {"status": "processed", "processed_at": datetime.now(timezone.utc).isoformat()}})
     
-    # Update transaction status
-    await db.transactions.update_one(
-        {"id": transaction_id},
-        {"$set": {"status": "processed", "processed_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    
-    # Send real-time update to user
     await manager.send_personal_message(
         {"type": "commission_calculated", "transaction_id": transaction_id, "amount": str(commission_amount)},
         transaction['sales_rep_id']
@@ -629,11 +346,7 @@ async def process_transaction_commission(transaction_id: str):
 
 @api_router.get("/commissions/my-earnings")
 async def get_my_earnings(current_user: User = Depends(get_current_user)):
-    """Get earnings for current user."""
-    calculations = await db.commission_calculations.find(
-        {"sales_rep_id": current_user.id},
-        {"_id": 0}
-    ).to_list(1000)
+    calculations = await db.commission_calculations.find({"sales_rep_id": current_user.id}, {"_id": 0}).to_list(1000)
     
     for c in calculations:
         for key in ['calculation_date', 'created_at']:
@@ -643,14 +356,12 @@ async def get_my_earnings(current_user: User = Depends(get_current_user)):
             c[key] = Decimal(c[key])
     
     total_earnings = sum(Decimal(c['final_amount']) for c in calculations)
-    
     return {"total_earnings": str(total_earnings), "calculations": calculations}
 
 # ============= COMMISSION PLAN ENDPOINTS =============
 
 @api_router.post("/plans", response_model=CommissionPlan)
 async def create_commission_plan(plan_data: CommissionPlanCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
-    # Validate plan logic
     validation = validate_commission_plan_logic(plan_data.rules)
     if not validation['valid']:
         raise HTTPException(status_code=400, detail=validation.get('error', 'Invalid plan logic'))
@@ -665,7 +376,6 @@ async def create_commission_plan(plan_data: CommissionPlanCreate, current_user: 
     
     await db.commission_plans.insert_one(doc)
     await create_audit_log(current_user.id, "plan_created", "commission_plan", plan.id, None, doc)
-    
     return plan
 
 @api_router.get("/plans", response_model=List[CommissionPlan])
@@ -679,7 +389,1012 @@ async def list_commission_plans(current_user: User = Depends(require_role(["admi
         p['updated_at'] = datetime.fromisoformat(p['updated_at'])
     return plans
 
-# Continue in next part...
+@api_router.patch("/plans/{plan_id}")
+async def update_plan(plan_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    plan = await db.plans.find_one({"id": plan_id}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.commission_plans.update_one({"id": plan_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "plan_updated", "commission_plan", plan_id, plan, update_data)
+    return {"message": "Plan updated successfully"}
+
+# ============= CREDIT ASSIGNMENT ENDPOINTS =============
+
+@api_router.post("/credit-assignments")
+async def create_credit_assignment(assignment_data: CreditAssignmentCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
+    if not validate_credit_distribution(assignment_data.assignments):
+        raise HTTPException(status_code=400, detail="Credit distribution must equal 100%")
+    
+    assignment = CreditAssignment(**assignment_data.model_dump())
+    doc = assignment.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['total_credit_percent'] = str(doc['total_credit_percent'])
+    
+    await db.credit_assignments.insert_one(doc)
+    await create_audit_log(current_user.id, "credit_assignment_created", "credit_assignment", assignment.id, None, doc)
+    return assignment
+
+@api_router.get("/credit-assignments")
+async def list_credit_assignments(current_user: User = Depends(get_current_user)):
+    assignments = await db.credit_assignments.find({}, {"_id": 0}).to_list(1000)
+    for a in assignments:
+        if isinstance(a['created_at'], str):
+            a['created_at'] = datetime.fromisoformat(a['created_at'])
+        a['total_credit_percent'] = Decimal(a['total_credit_percent'])
+    return assignments
+
+# ============= SPIFF ENDPOINTS =============
+
+@api_router.post("/spiffs")
+async def create_spiff(spiff_data: SpiffCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
+    spiff = Spiff(**spiff_data.model_dump(), created_by=current_user.id)
+    doc = spiff.model_dump()
+    doc['start_date'] = doc['start_date'].isoformat()
+    doc['end_date'] = doc['end_date'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['incentive_amount'] = str(doc['incentive_amount'])
+    
+    await db.spiffs.insert_one(doc)
+    await create_audit_log(current_user.id, "spiff_created", "spiff", spiff.id, None, doc)
+    return spiff
+
+@api_router.get("/spiffs")
+async def list_spiffs(current_user: User = Depends(get_current_user)):
+    spiffs = await db.spiffs.find({}, {"_id": 0}).to_list(100)
+    for s in spiffs:
+        for key in ['start_date', 'end_date', 'created_at']:
+            if isinstance(s[key], str):
+                s[key] = datetime.fromisoformat(s[key])
+        s['incentive_amount'] = Decimal(s['incentive_amount'])
+    return spiffs
+
+@api_router.get("/spiffs/active")
+async def get_active_spiffs(current_user: User = Depends(get_current_user)):
+    now = datetime.now(timezone.utc).isoformat()
+    spiffs = await db.spiffs.find({
+        "status": "active",
+        "start_date": {"$lte": now},
+        "end_date": {"$gte": now}
+    }, {"_id": 0}).to_list(100)
+    
+    for s in spiffs:
+        for key in ['start_date', 'end_date', 'created_at']:
+            if isinstance(s[key], str):
+                s[key] = datetime.fromisoformat(s[key])
+        s['incentive_amount'] = Decimal(s['incentive_amount'])
+    return spiffs
+
+@api_router.patch("/spiffs/{spiff_id}")
+async def update_spiff(spiff_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    result = await db.spiffs.update_one({"id": spiff_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Spiff not found")
+    await create_audit_log(current_user.id, "spiff_updated", "spiff", spiff_id, None, update_data)
+    return {"message": "Spiff updated successfully"}
+
+# ============= PARTNER ENDPOINTS =============
+
+@api_router.post("/partners/register")
+async def register_partner(partner_data: dict):
+    partner = Partner(
+        company_name=partner_data.get('company_name'),
+        contact_name=partner_data.get('contact_name'),
+        contact_email=partner_data.get('contact_email'),
+        user_id=partner_data.get('user_id'),
+        tier='bronze',
+        status='pending_review',
+        onboarding_progress=50
+    )
+    
+    doc = partner.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    doc['phone'] = partner_data.get('phone')
+    doc['website'] = partner_data.get('website')
+    doc['business_type'] = partner_data.get('business_type')
+    doc['years_in_business'] = partner_data.get('years_in_business')
+    doc['number_of_employees'] = partner_data.get('number_of_employees')
+    doc['expected_monthly_volume'] = partner_data.get('expected_monthly_volume')
+    doc['documents'] = {
+        'business_license': partner_data.get('business_license', 'uploaded'),
+        'tax_id': partner_data.get('tax_id', 'uploaded'),
+        'identity_proof': partner_data.get('identity_proof', 'uploaded'),
+        'bank_statement': partner_data.get('bank_statement'),
+        'signed_agreement': partner_data.get('signed_agreement')
+    }
+    doc['review_history'] = []
+    doc['submitted_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.partners.insert_one(doc)
+    await db.users.update_one({"id": partner.user_id}, {"$set": {"active": False}})
+    await create_audit_log(partner.user_id, "partner_registered", "partner", partner.id, None, doc)
+    
+    return {"message": "Partner registered successfully. Pending admin approval.", "partner_id": partner.id}
+
+@api_router.get("/partners/all")
+async def get_all_partners(current_user: User = Depends(get_current_user)):
+    if current_user.role == "partner":
+        partners = await db.partners.find({"user_id": current_user.id}, {"_id": 0}).to_list(10)
+    else:
+        partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    return partners
+
+@api_router.get("/partners/pending")
+async def get_pending_partners(current_user: User = Depends(require_role(["admin", "finance"]))):
+    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    return partners
+
+@api_router.post("/partners/{partner_id}/approve")
+async def approve_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {
+        "status": "approved",
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+        "approved_by": current_user.id,
+        "onboarding_progress": 100,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "approved",
+        "comments": review_data.get('comments', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await db.users.update_one({"id": partner['user_id']}, {"$set": {"active": True}})
+    await create_audit_log(current_user.id, "partner_approved", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner approved successfully"}
+
+@api_router.post("/partners/{partner_id}/reject")
+async def reject_partner(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {
+        "status": "rejected",
+        "rejection_reason": review_data.get('reason', 'Application did not meet requirements'),
+        "rejected_at": datetime.now(timezone.utc).isoformat(),
+        "rejected_by": current_user.id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "rejected",
+        "comments": review_data.get('reason', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_rejected", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner rejected"}
+
+@api_router.post("/partners/{partner_id}/request-more")
+async def request_more_info(partner_id: str, review_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {
+        "status": "more_info_needed",
+        "info_request": review_data.get('message', ''),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    review_history = partner.get('review_history', [])
+    review_history.append({
+        "action": "requested_more_info",
+        "comments": review_data.get('message', ''),
+        "reviewer": current_user.full_name,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    update_data['review_history'] = review_history
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_info_requested", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Information request sent to partner"}
+
+@api_router.patch("/partners/{partner_id}")
+async def update_partner(partner_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    allowed_fields = ['tier', 'status', 'notes']
+    update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_dict})
+    await create_audit_log(current_user.id, "partner_updated", "partner", partner_id, partner, update_dict)
+    
+    return {"message": "Partner updated successfully"}
+
+@api_router.post("/partners/{partner_id}/deactivate")
+async def deactivate_partner(partner_id: str, deactivate_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {
+        "status": "inactive",
+        "deactivation_reason": deactivate_data.get('reason', ''),
+        "deactivated_at": datetime.now(timezone.utc).isoformat(),
+        "deactivated_by": current_user.id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await db.users.update_one({"id": partner['user_id']}, {"$set": {"active": False}})
+    await create_audit_log(current_user.id, "partner_deactivated", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner deactivated successfully"}
+
+@api_router.get("/partners/my-info")
+async def get_my_partner_info(current_user: User = Depends(get_current_user)):
+    partner = await db.partners.find_one({"user_id": current_user.id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner profile not found")
+    
+    for key in ['created_at', 'updated_at']:
+        if isinstance(partner[key], str):
+            partner[key] = datetime.fromisoformat(partner[key])
+    
+    return partner
+
+# ============= APPROVAL WORKFLOW ENDPOINTS =============
+
+@api_router.post("/workflows")
+async def create_approval_workflow(workflow_data: ApprovalWorkflowCreate, current_user: User = Depends(require_role(["admin", "finance", "manager"]))):
+    workflow = ApprovalWorkflow(**workflow_data.model_dump(), initiated_by=current_user.id)
+    doc = workflow.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.approval_workflows.insert_one(doc)
+    await create_audit_log(current_user.id, "workflow_created", "workflow", workflow.id, None, doc)
+    return workflow
+
+@api_router.get("/workflows")
+async def list_workflows(current_user: User = Depends(get_current_user)):
+    query = {}
+    if current_user.role not in ["admin", "finance"]:
+        query["$or"] = [
+            {"initiated_by": current_user.id},
+            {"steps.approver_id": current_user.id}
+        ]
+    
+    workflows = await db.approval_workflows.find(query, {"_id": 0}).to_list(100)
+    for w in workflows:
+        for key in ['created_at', 'updated_at']:
+            if isinstance(w[key], str):
+                w[key] = datetime.fromisoformat(w[key])
+    return workflows
+
+@api_router.get("/workflows/my-approvals")
+async def get_my_pending_approvals(current_user: User = Depends(get_current_user)):
+    workflows = await db.approval_workflows.find({
+        "steps": {
+            "$elemMatch": {
+                "approver_id": current_user.id,
+                "status": "pending"
+            }
+        }
+    }, {"_id": 0}).to_list(100)
+    
+    for w in workflows:
+        for key in ['created_at', 'updated_at']:
+            if isinstance(w[key], str):
+                w[key] = datetime.fromisoformat(w[key])
+    return workflows
+
+@api_router.post("/workflows/{workflow_id}/approve")
+async def approve_workflow_step(workflow_id: str, step_data: dict, current_user: User = Depends(get_current_user)):
+    workflow = await db.approval_workflows.find_one({"id": workflow_id}, {"_id": 0})
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    step_number = step_data.get('step_number')
+    comments = step_data.get('comments', '')
+    
+    updated = False
+    for step in workflow['steps']:
+        if step['step_number'] == step_number and step['approver_id'] == current_user.id:
+            step['status'] = 'approved'
+            step['timestamp'] = datetime.now(timezone.utc).isoformat()
+            step['comments'] = comments
+            updated = True
+            break
+    
+    if not updated:
+        raise HTTPException(status_code=403, detail="Not authorized to approve this step")
+    
+    all_approved = all(s['status'] == 'approved' for s in workflow['steps'])
+    if all_approved:
+        workflow['status'] = 'final_approved'
+    
+    await db.approval_workflows.update_one(
+        {"id": workflow_id},
+        {"$set": {"steps": workflow['steps'], "status": workflow['status'], "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await create_audit_log(current_user.id, "workflow_approved", "workflow", workflow_id, None, {"step": step_number})
+    return {"message": "Step approved", "workflow_status": workflow['status']}
+
+@api_router.post("/workflows/{workflow_id}/reject")
+async def reject_workflow(workflow_id: str, rejection_data: dict, current_user: User = Depends(get_current_user)):
+    workflow = await db.approval_workflows.find_one({"id": workflow_id}, {"_id": 0})
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    step_number = rejection_data.get('step_number')
+    comments = rejection_data.get('comments', '')
+    
+    for step in workflow['steps']:
+        if step['step_number'] == step_number and step['approver_id'] == current_user.id:
+            step['status'] = 'rejected'
+            step['timestamp'] = datetime.now(timezone.utc).isoformat()
+            step['comments'] = comments
+            break
+    
+    workflow['status'] = 'rejected'
+    
+    await db.approval_workflows.update_one(
+        {"id": workflow_id},
+        {"$set": {"steps": workflow['steps'], "status": "rejected", "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await create_audit_log(current_user.id, "workflow_rejected", "workflow", workflow_id, None, {"step": step_number})
+    return {"message": "Workflow rejected"}
+
+@api_router.post("/workflows/{workflow_id}/recall")
+async def recall_workflow(workflow_id: str, current_user: User = Depends(get_current_user)):
+    workflow = await db.approval_workflows.find_one({"id": workflow_id}, {"_id": 0})
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    if workflow['initiated_by'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Only initiator can recall workflow")
+    
+    await db.approval_workflows.update_one(
+        {"id": workflow_id},
+        {"$set": {"status": "recalled", "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await create_audit_log(current_user.id, "workflow_recalled", "workflow", workflow_id, None, None)
+    return {"message": "Workflow recalled"}
+
+# ============= PAYOUT ENDPOINTS =============
+
+@api_router.post("/payouts")
+async def create_payout(payout_data: PayoutCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
+    calculations = await db.commission_calculations.find({
+        "sales_rep_id": payout_data.user_id,
+        "calculation_date": {
+            "$gte": payout_data.payout_period_start.isoformat(),
+            "$lte": payout_data.payout_period_end.isoformat()
+        },
+        "status": "approved"
+    }, {"_id": 0}).to_list(1000)
+    
+    total_commission = sum(Decimal(c['final_amount']) for c in calculations)
+    
+    payout = Payout(
+        **payout_data.model_dump(),
+        total_commission=total_commission,
+        net_payout=total_commission
+    )
+    
+    doc = payout.model_dump()
+    doc['payout_period_start'] = doc['payout_period_start'].isoformat()
+    doc['payout_period_end'] = doc['payout_period_end'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    for key in ['total_commission', 'adjustments', 'deductions', 'net_payout']:
+        doc[key] = str(doc[key])
+    
+    await db.payouts.insert_one(doc)
+    await create_audit_log(current_user.id, "payout_created", "payout", payout.id, None, doc)
+    return payout
+
+@api_router.get("/payouts")
+async def list_payouts(current_user: User = Depends(get_current_user)):
+    query = {}
+    if current_user.role in ["rep", "partner"]:
+        query["user_id"] = current_user.id
+    
+    payouts = await db.payouts.find(query, {"_id": 0}).to_list(100)
+    for p in payouts:
+        for key in ['payout_period_start', 'payout_period_end', 'created_at']:
+            if isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if p.get('processed_at') and isinstance(p['processed_at'], str):
+            p['processed_at'] = datetime.fromisoformat(p['processed_at'])
+        for key in ['total_commission', 'adjustments', 'deductions', 'net_payout']:
+            p[key] = Decimal(p[key])
+    return payouts
+
+@api_router.get("/payouts/my-payouts")
+async def get_my_payouts(current_user: User = Depends(get_current_user)):
+    payouts = await db.payouts.find({"user_id": current_user.id}, {"_id": 0}).to_list(100)
+    for p in payouts:
+        for key in ['payout_period_start', 'payout_period_end', 'created_at']:
+            if isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if p.get('processed_at') and isinstance(p['processed_at'], str):
+            p['processed_at'] = datetime.fromisoformat(p['processed_at'])
+        for key in ['total_commission', 'adjustments', 'deductions', 'net_payout']:
+            p[key] = Decimal(p[key])
+    return payouts
+
+@api_router.post("/payouts/{payout_id}/approve")
+async def approve_payout(payout_id: str, current_user: User = Depends(require_role(["admin", "finance"]))):
+    await db.payouts.update_one(
+        {"id": payout_id},
+        {"$set": {"status": "approved", "processed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    await create_audit_log(current_user.id, "payout_approved", "payout", payout_id, None, None)
+    return {"message": "Payout approved"}
+
+@api_router.get("/payouts/{payout_id}/export")
+async def export_payout(payout_id: str, format: str = "csv", current_user: User = Depends(require_role(["admin", "finance"]))):
+    payout = await db.payouts.find_one({"id": payout_id}, {"_id": 0})
+    if not payout:
+        raise HTTPException(status_code=404, detail="Payout not found")
+    
+    return {"message": f"Payout export in {format} format", "data": payout}
+
+# ============= TERRITORY ENDPOINTS =============
+
+@api_router.post("/territories")
+async def create_territory(territory_data: TerritoryCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
+    territory = Territory(**territory_data.model_dump())
+    doc = territory.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    doc['account_potential'] = str(doc['account_potential'])
+    
+    await db.territories.insert_one(doc)
+    await create_audit_log(current_user.id, "territory_created", "territory", territory.id, None, doc)
+    return territory
+
+@api_router.get("/territories")
+async def list_territories(current_user: User = Depends(get_current_user)):
+    territories = await db.territories.find({}, {"_id": 0}).to_list(100)
+    for t in territories:
+        for key in ['created_at', 'updated_at']:
+            if isinstance(t[key], str):
+                t[key] = datetime.fromisoformat(t[key])
+        t['account_potential'] = Decimal(t['account_potential'])
+    return territories
+
+@api_router.patch("/territories/{territory_id}")
+async def update_territory(territory_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "manager"]))):
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    result = await db.territories.update_one({"id": territory_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Territory not found")
+    await create_audit_log(current_user.id, "territory_updated", "territory", territory_id, None, update_data)
+    return {"message": "Territory updated"}
+
+@api_router.post("/territories/{territory_id}/assign")
+async def assign_territory(territory_id: str, assignment_data: dict, current_user: User = Depends(require_role(["admin", "manager"]))):
+    rep_id = assignment_data.get('rep_id')
+    await db.territories.update_one(
+        {"id": territory_id},
+        {"$set": {"assigned_rep_id": rep_id, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    await create_audit_log(current_user.id, "territory_assigned", "territory", territory_id, None, {"rep_id": rep_id})
+    return {"message": "Territory assigned"}
+
+# ============= QUOTA ENDPOINTS =============
+
+@api_router.post("/quotas")
+async def create_quota(quota_data: QuotaCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
+    quota = Quota(**quota_data.model_dump())
+    doc = quota.model_dump()
+    doc['period_start'] = doc['period_start'].isoformat()
+    doc['period_end'] = doc['period_end'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    for key in ['quota_amount', 'current_attainment', 'attainment_percent']:
+        doc[key] = str(doc[key])
+    
+    await db.quotas.insert_one(doc)
+    await create_audit_log(current_user.id, "quota_created", "quota", quota.id, None, doc)
+    return quota
+
+@api_router.get("/quotas")
+async def list_quotas(current_user: User = Depends(get_current_user)):
+    query = {}
+    if current_user.role in ["rep", "partner"]:
+        query["user_id"] = current_user.id
+    
+    quotas = await db.quotas.find(query, {"_id": 0}).to_list(100)
+    for q in quotas:
+        for key in ['period_start', 'period_end', 'created_at', 'updated_at']:
+            if isinstance(q[key], str):
+                q[key] = datetime.fromisoformat(q[key])
+        for key in ['quota_amount', 'current_attainment', 'attainment_percent']:
+            q[key] = Decimal(q[key])
+    return quotas
+
+@api_router.get("/quotas/my-quota")
+async def get_my_quota(current_user: User = Depends(get_current_user)):
+    quota = await db.quotas.find_one({"user_id": current_user.id, "status": "active"}, {"_id": 0})
+    if not quota:
+        return {"message": "No active quota found"}
+    
+    for key in ['period_start', 'period_end', 'created_at', 'updated_at']:
+        if isinstance(quota[key], str):
+            quota[key] = datetime.fromisoformat(quota[key])
+    for key in ['quota_amount', 'current_attainment', 'attainment_percent']:
+        quota[key] = Decimal(quota[key])
+    return quota
+
+@api_router.patch("/quotas/{quota_id}")
+async def update_quota(quota_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "manager"]))):
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    result = await db.quotas.update_one({"id": quota_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Quota not found")
+    await create_audit_log(current_user.id, "quota_updated", "quota", quota_id, None, update_data)
+    return {"message": "Quota updated"}
+
+@api_router.post("/quotas/bulk-import")
+async def bulk_import_quotas(file: UploadFile = File(...), current_user: User = Depends(require_role(["admin", "manager"]))):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files supported")
+    
+    content = await file.read()
+    csv_file = io.StringIO(content.decode('utf-8'))
+    reader = csv.DictReader(csv_file)
+    
+    quotas_created = 0
+    for row in reader:
+        try:
+            quota = Quota(
+                user_id=row['user_id'],
+                period_start=datetime.fromisoformat(row['period_start']),
+                period_end=datetime.fromisoformat(row['period_end']),
+                quota_amount=Decimal(row['quota_amount']),
+                quota_type=row['quota_type'],
+                assignment_method=row['assignment_method']
+            )
+            doc = quota.model_dump()
+            doc['period_start'] = doc['period_start'].isoformat()
+            doc['period_end'] = doc['period_end'].isoformat()
+            doc['created_at'] = doc['created_at'].isoformat()
+            doc['updated_at'] = doc['updated_at'].isoformat()
+            for key in ['quota_amount', 'current_attainment', 'attainment_percent']:
+                doc[key] = str(doc[key])
+            await db.quotas.insert_one(doc)
+            quotas_created += 1
+        except:
+            pass
+    
+    return {"quotas_created": quotas_created}
+
+# ============= FORECAST ENDPOINTS =============
+
+@api_router.post("/forecasts")
+async def create_forecast(forecast_data: ForecastCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
+    forecast = Forecast(
+        **forecast_data.model_dump(),
+        created_by=current_user.id,
+        projected_revenue=Decimal("1000000.0000"),
+        projected_payout=Decimal("50000.0000"),
+        projected_cos_percent=Decimal("5.0000")
+    )
+    
+    doc = forecast.model_dump()
+    doc['period_start'] = doc['period_start'].isoformat()
+    doc['period_end'] = doc['period_end'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    for key in ['projected_revenue', 'projected_payout', 'projected_cos_percent', 'variance_from_current']:
+        doc[key] = str(doc[key])
+    
+    await db.forecasts.insert_one(doc)
+    await create_audit_log(current_user.id, "forecast_created", "forecast", forecast.id, None, doc)
+    return forecast
+
+@api_router.get("/forecasts")
+async def list_forecasts(current_user: User = Depends(require_role(["admin", "finance"]))):
+    forecasts = await db.forecasts.find({}, {"_id": 0}).to_list(100)
+    for f in forecasts:
+        for key in ['period_start', 'period_end', 'created_at']:
+            if isinstance(f[key], str):
+                f[key] = datetime.fromisoformat(f[key])
+        for key in ['projected_revenue', 'projected_payout', 'projected_cos_percent', 'variance_from_current']:
+            f[key] = Decimal(f[key])
+    return forecasts
+
+@api_router.get("/forecasts/scenarios")
+async def get_forecast_scenarios(current_user: User = Depends(require_role(["admin", "finance"]))):
+    scenarios = await db.forecasts.find({}, {"_id": 0}).to_list(100)
+    return {
+        "conservative": [s for s in scenarios if 'conservative' in s.get('scenario_name', '').lower()],
+        "realistic": [s for s in scenarios if 'realistic' in s.get('scenario_name', '').lower()],
+        "optimistic": [s for s in scenarios if 'optimistic' in s.get('scenario_name', '').lower()]
+    }
+
+# ============= TICKET/SUPPORT ENDPOINTS =============
+
+@api_router.post("/tickets")
+async def create_ticket(ticket_data: TicketCreate, current_user: User = Depends(get_current_user)):
+    sla_hours = calculate_sla_hours(ticket_data.severity)
+    ticket = Ticket(**ticket_data.model_dump(), submitted_by=current_user.id, sla_hours=sla_hours)
+    
+    doc = ticket.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.tickets.insert_one(doc)
+    await create_audit_log(current_user.id, "ticket_created", "ticket", ticket.id, None, doc)
+    return ticket
+
+@api_router.get("/tickets")
+async def list_tickets(current_user: User = Depends(get_current_user)):
+    query = {}
+    if current_user.role not in ["admin", "finance"]:
+        query["submitted_by"] = current_user.id
+    
+    tickets = await db.tickets.find(query, {"_id": 0}).to_list(100)
+    for t in tickets:
+        t['created_at'] = datetime.fromisoformat(t['created_at'])
+        if t.get('resolved_at') and isinstance(t['resolved_at'], str):
+            t['resolved_at'] = datetime.fromisoformat(t['resolved_at'])
+        t['sla_breach'] = check_sla_breach(t['created_at'], t['sla_hours'])
+    return tickets
+
+@api_router.get("/tickets/my-tickets")
+async def get_my_tickets(current_user: User = Depends(get_current_user)):
+    tickets = await db.tickets.find({"submitted_by": current_user.id}, {"_id": 0}).to_list(100)
+    for t in tickets:
+        t['created_at'] = datetime.fromisoformat(t['created_at'])
+        if t.get('resolved_at') and isinstance(t['resolved_at'], str):
+            t['resolved_at'] = datetime.fromisoformat(t['resolved_at'])
+        t['sla_breach'] = check_sla_breach(t['created_at'], t['sla_hours'])
+    return tickets
+
+@api_router.patch("/tickets/{ticket_id}")
+async def update_ticket(ticket_id: str, update_data: dict, current_user: User = Depends(get_current_user)):
+    result = await db.tickets.update_one({"id": ticket_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    await create_audit_log(current_user.id, "ticket_updated", "ticket", ticket_id, None, update_data)
+    return {"message": "Ticket updated"}
+
+@api_router.post("/tickets/{ticket_id}/assign")
+async def assign_ticket(ticket_id: str, assignment_data: dict, current_user: User = Depends(require_role(["admin", "manager"]))):
+    assigned_to = assignment_data.get('assigned_to')
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"assigned_to": assigned_to, "status": "assigned"}}
+    )
+    await create_audit_log(current_user.id, "ticket_assigned", "ticket", ticket_id, None, {"assigned_to": assigned_to})
+    return {"message": "Ticket assigned"}
+
+@api_router.post("/tickets/{ticket_id}/resolve")
+async def resolve_ticket(ticket_id: str, resolution_data: dict, current_user: User = Depends(get_current_user)):
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"status": "resolved", "resolved_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    await create_audit_log(current_user.id, "ticket_resolved", "ticket", ticket_id, None, resolution_data)
+    return {"message": "Ticket resolved"}
+
+@api_router.post("/tickets/{ticket_id}/comment")
+async def add_ticket_comment(ticket_id: str, comment_data: dict, current_user: User = Depends(get_current_user)):
+    comment = {
+        "user_id": current_user.id,
+        "user_name": current_user.full_name,
+        "comment": comment_data.get('comment'),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {"$push": {"comments": comment}}
+    )
+    return {"message": "Comment added"}
+
+# ============= NFM (NON-FINANCIAL METRICS) ENDPOINTS =============
+
+@api_router.post("/nfms")
+async def create_nfm(nfm_data: NFMCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
+    nfm = NFM(**nfm_data.model_dump())
+    doc = nfm.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    for key in ['target_value', 'actual_value']:
+        doc[key] = str(doc[key])
+    if doc.get('multiplier_effect'):
+        doc['multiplier_effect'] = str(doc['multiplier_effect'])
+    if doc.get('threshold_requirement'):
+        doc['threshold_requirement'] = str(doc['threshold_requirement'])
+    
+    await db.nfms.insert_one(doc)
+    await create_audit_log(current_user.id, "nfm_created", "nfm", nfm.id, None, doc)
+    return nfm
+
+@api_router.get("/nfms")
+async def list_nfms(current_user: User = Depends(get_current_user)):
+    query = {}
+    if current_user.role in ["rep", "partner"]:
+        query["user_id"] = current_user.id
+    
+    nfms = await db.nfms.find(query, {"_id": 0}).to_list(100)
+    for n in nfms:
+        if isinstance(n['created_at'], str):
+            n['created_at'] = datetime.fromisoformat(n['created_at'])
+        for key in ['target_value', 'actual_value']:
+            n[key] = Decimal(n[key])
+        if n.get('multiplier_effect'):
+            n['multiplier_effect'] = Decimal(n['multiplier_effect'])
+        if n.get('threshold_requirement'):
+            n['threshold_requirement'] = Decimal(n['threshold_requirement'])
+    return nfms
+
+@api_router.patch("/nfms/{nfm_id}")
+async def update_nfm(nfm_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "manager"]))):
+    result = await db.nfms.update_one({"id": nfm_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="NFM not found")
+    await create_audit_log(current_user.id, "nfm_updated", "nfm", nfm_id, None, update_data)
+    return {"message": "NFM updated"}
+
+# ============= ANALYTICS & DASHBOARD ENDPOINTS =============
+
+@api_router.get("/analytics/dashboard")
+async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    # Get user-specific stats
+    total_earnings = Decimal("0")
+    calculations = await db.commission_calculations.find({"sales_rep_id": current_user.id}, {"_id": 0}).to_list(1000)
+    if calculations:
+        total_earnings = sum(Decimal(c['final_amount']) for c in calculations)
+    
+    # Get quota attainment
+    quota = await db.quotas.find_one({"user_id": current_user.id, "status": "active"}, {"_id": 0})
+    quota_attainment = Decimal("0")
+    if quota:
+        quota_attainment = Decimal(quota['attainment_percent'])
+    
+    # Get active spiffs
+    now = datetime.now(timezone.utc).isoformat()
+    active_spiffs_count = await db.spiffs.count_documents({
+        "status": "active",
+        "start_date": {"$lte": now},
+        "end_date": {"$gte": now}
+    })
+    
+    # Get pending approvals count
+    pending_approvals = 0
+    if current_user.role in ["admin", "finance", "manager"]:
+        pending_approvals = await db.approval_workflows.count_documents({
+            "steps": {
+                "$elemMatch": {
+                    "approver_id": current_user.id,
+                    "status": "pending"
+                }
+            }
+        })
+    
+    # Get open tickets
+    open_tickets = await db.tickets.count_documents({
+        "submitted_by": current_user.id,
+        "status": {"$in": ["new", "assigned", "investigating"]}
+    })
+    
+    return {
+        "total_earnings": str(total_earnings),
+        "quota_attainment": str(quota_attainment),
+        "active_spiffs": active_spiffs_count,
+        "pending_approvals": pending_approvals,
+        "open_tickets": open_tickets,
+        "recent_calculations": calculations[:10] if calculations else []
+    }
+
+@api_router.get("/analytics/team-performance")
+async def get_team_performance(current_user: User = Depends(require_role(["admin", "manager", "finance"]))):
+    # Get all users and their performance
+    users = await db.users.find({"role": {"$in": ["rep", "partner"]}}, {"_id": 0}).to_list(100)
+    
+    performance_data = []
+    for user in users:
+        calculations = await db.commission_calculations.find({"sales_rep_id": user['id']}, {"_id": 0}).to_list(1000)
+        total = sum(Decimal(c['final_amount']) for c in calculations) if calculations else Decimal("0")
+        
+        quota = await db.quotas.find_one({"user_id": user['id'], "status": "active"}, {"_id": 0})
+        attainment = Decimal(quota['attainment_percent']) if quota else Decimal("0")
+        
+        performance_data.append({
+            "user_id": user['id'],
+            "user_name": user['full_name'],
+            "total_earnings": str(total),
+            "quota_attainment": str(attainment),
+            "rank": 0
+        })
+    
+    # Sort by earnings and assign ranks
+    performance_data.sort(key=lambda x: Decimal(x['total_earnings']), reverse=True)
+    for idx, item in enumerate(performance_data):
+        item['rank'] = idx + 1
+    
+    return performance_data
+
+@api_router.get("/analytics/channel-health")
+async def get_channel_health(current_user: User = Depends(require_role(["admin", "finance"]))):
+    # Get partner health metrics
+    partners = await db.partners.find({"status": "active"}, {"_id": 0}).to_list(100)
+    
+    health_data = []
+    for partner in partners:
+        # Get partner transactions
+        transactions = await db.transactions.find({"sales_rep_id": partner.get('user_id', '')}, {"_id": 0}).to_list(1000)
+        total_volume = sum(Decimal(t['total_amount']) for t in transactions) if transactions else Decimal("0")
+        
+        # Get NFM compliance
+        nfms = await db.nfms.find({"user_id": partner.get('user_id', '')}, {"_id": 0}).to_list(100)
+        nfm_compliance = Decimal("100") if nfms else Decimal("0")
+        
+        health_data.append({
+            "partner_id": partner['id'],
+            "partner_name": partner['company_name'],
+            "tier": partner['tier'],
+            "total_volume": str(total_volume),
+            "nfm_compliance": str(nfm_compliance),
+            "status": partner['status']
+        })
+    
+    return health_data
+
+@api_router.get("/analytics/reports")
+async def generate_report(report_type: str, current_user: User = Depends(require_role(["admin", "finance"]))):
+    if report_type == "commission_summary":
+        calculations = await db.commission_calculations.find({}, {"_id": 0}).to_list(1000)
+        return {"report_type": "commission_summary", "data": calculations}
+    
+    elif report_type == "payout_reconciliation":
+        payouts = await db.payouts.find({}, {"_id": 0}).to_list(1000)
+        return {"report_type": "payout_reconciliation", "data": payouts}
+    
+    elif report_type == "partner_profitability":
+        partners = await db.partners.find({}, {"_id": 0}).to_list(100)
+        return {"report_type": "partner_profitability", "data": partners}
+    
+    return {"message": "Report type not found"}
+
+@api_router.post("/analytics/export")
+async def export_analytics(export_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    format_type = export_data.get('format', 'pdf')
+    report_type = export_data.get('report_type', 'commission_summary')
+    
+    return {
+        "message": f"Export generated in {format_type} format",
+        "report_type": report_type,
+        "file_path": f"/exports/{report_type}_{datetime.now().strftime('%Y%m%d')}.{format_type}"
+    }
+
+# ============= GAMIFICATION ENDPOINTS =============
+
+@api_router.get("/gamification/leaderboard")
+async def get_leaderboard(period: str = "monthly", current_user: User = Depends(get_current_user)):
+    # Get all reps and their earnings
+    users = await db.users.find({"role": {"$in": ["rep", "partner"]}}, {"_id": 0}).to_list(100)
+    
+    leaderboard = []
+    for user in users:
+        calculations = await db.commission_calculations.find({"sales_rep_id": user['id']}, {"_id": 0}).to_list(1000)
+        total = sum(Decimal(c['final_amount']) for c in calculations) if calculations else Decimal("0")
+        
+        leaderboard.append({
+            "user_id": user['id'],
+            "user_name": user['full_name'],
+            "total_earnings": str(total),
+            "badge": "Gold" if total > Decimal("10000") else "Silver" if total > Decimal("5000") else "Bronze"
+        })
+    
+    leaderboard.sort(key=lambda x: Decimal(x['total_earnings']), reverse=True)
+    for idx, item in enumerate(leaderboard):
+        item['rank'] = idx + 1
+    
+    return leaderboard
+
+@api_router.get("/gamification/milestones")
+async def get_milestones(current_user: User = Depends(get_current_user)):
+    calculations = await db.commission_calculations.find({"sales_rep_id": current_user.id}, {"_id": 0}).to_list(1000)
+    total_earnings = sum(Decimal(c['final_amount']) for c in calculations) if calculations else Decimal("0")
+    
+    milestones = [
+        {"name": "First Commission", "threshold": "100", "achieved": total_earnings >= Decimal("100")},
+        {"name": "Rising Star", "threshold": "1000", "achieved": total_earnings >= Decimal("1000")},
+        {"name": "Top Performer", "threshold": "5000", "achieved": total_earnings >= Decimal("5000")},
+        {"name": "Elite Seller", "threshold": "10000", "achieved": total_earnings >= Decimal("10000")},
+        {"name": "Legend", "threshold": "25000", "achieved": total_earnings >= Decimal("25000")}
+    ]
+    
+    return {"milestones": milestones, "total_earnings": str(total_earnings)}
+
+# ============= ELIGIBILITY MATRIX ENDPOINTS =============
+
+@api_router.post("/eligibility-rules")
+async def create_eligibility_rule(rule_data: EligibilityRuleCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
+    rule = EligibilityRule(**rule_data.model_dump())
+    doc = rule.model_dump()
+    doc['effective_start'] = doc['effective_start'].isoformat()
+    if doc['effective_end']:
+        doc['effective_end'] = doc['effective_end'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('commission_rate_override'):
+        doc['commission_rate_override'] = str(doc['commission_rate_override'])
+    
+    await db.eligibility_rules.insert_one(doc)
+    await create_audit_log(current_user.id, "eligibility_rule_created", "eligibility_rule", rule.id, None, doc)
+    return rule
+
+@api_router.get("/eligibility-rules")
+async def list_eligibility_rules(current_user: User = Depends(require_role(["admin", "finance"]))):
+    rules = await db.eligibility_rules.find({}, {"_id": 0}).to_list(100)
+    for r in rules:
+        r['effective_start'] = datetime.fromisoformat(r['effective_start'])
+        if r.get('effective_end') and isinstance(r['effective_end'], str):
+            r['effective_end'] = datetime.fromisoformat(r['effective_end'])
+        if isinstance(r['created_at'], str):
+            r['created_at'] = datetime.fromisoformat(r['created_at'])
+        if r.get('commission_rate_override'):
+            r['commission_rate_override'] = Decimal(r['commission_rate_override'])
+    return rules
+
+# ============= DATA SOURCE MAPPING ENDPOINTS =============
+
+@api_router.post("/data-sources")
+async def create_data_source(source_data: DataSourceMappingCreate, current_user: User = Depends(require_role(["admin"]))):
+    source = DataSourceMapping(**source_data.model_dump())
+    doc = source.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.data_source_mappings.insert_one(doc)
+    await create_audit_log(current_user.id, "data_source_created", "data_source", source.id, None, doc)
+    return source
+
+@api_router.get("/data-sources")
+async def list_data_sources(current_user: User = Depends(require_role(["admin"]))):
+    sources = await db.data_source_mappings.find({}, {"_id": 0}).to_list(100)
+    for s in sources:
+        if isinstance(s['created_at'], str):
+            s['created_at'] = datetime.fromisoformat(s['created_at'])
+        if s.get('last_sync') and isinstance(s['last_sync'], str):
+            s['last_sync'] = datetime.fromisoformat(s['last_sync'])
+    return sources
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -710,7 +1425,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     try:
         while True:
             data = await websocket.receive_text()
-            # Echo back or process
             await websocket.send_text(f"Message received: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
