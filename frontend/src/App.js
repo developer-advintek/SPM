@@ -111,7 +111,6 @@ const AppContent = () => {
       <Navigation />
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/partner-register" element={<PartnerRegister />} />
         <Route
           path="/dashboard"
           element={
@@ -181,14 +180,6 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <SpiffCenter />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/vendor-tiers"
-          element={
-            <ProtectedRoute>
-              <VendorTiers />
             </ProtectedRoute>
           }
         />
