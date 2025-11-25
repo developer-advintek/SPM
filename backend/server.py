@@ -15,6 +15,7 @@ import io
 
 # Import models and utilities
 from models import *
+from models import CustomRoleCreate, CustomRole, CustomGroupCreate, CustomGroup
 from utils.security import verify_password, get_password_hash, create_access_token, verify_token, encrypt_sensitive_data, decrypt_sensitive_data
 from utils.validators import validate_credit_distribution, validate_commission_plan_logic, validate_financial_precision, calculate_sla_hours, check_sla_breach
 
