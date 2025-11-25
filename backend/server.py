@@ -1505,7 +1505,7 @@ async def delete_custom_group(group_id: str, current_user: User = Depends(requir
 
 @api_router.get("/permissions/available")
 async def get_available_permissions(current_user: User = Depends(require_role(["admin"]))):
-    \"\"\"Get all available permissions in the system\"\"\"
+    # Get all available permissions in the system
     permissions = {
         "user_management": [
             {"key": "users.view", "label": "View Users", "description": "View list of all users"},
