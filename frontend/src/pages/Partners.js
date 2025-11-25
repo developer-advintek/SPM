@@ -1,654 +1,811 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { useAuth } from '../contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
-import { Textarea } from '../components/ui/textarea';
-import { Label } from '../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Users, Award, CheckCircle, XCircle, Clock, Shield, Building, AlertCircle, TrendingUp } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-export const Partners = () => {
-  const { user } = useAuth();
+function Partners() {
+  const { user, token } = useAuth();
   const [partners, setPartners] = useState([]);
-  const [filteredPartners, setFilteredPartners] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterTier, setFilterTier] = useState('all');
-  
+  const [pendingPartners, setPendingPartners] = useState([]);
+  const [eligibilityRules, setEligibilityRules] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showRuleForm, setShowRuleForm] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState(''); // 'review', 'edit', 'view', 'deactivate'
-  const [reviewComments, setReviewComments] = useState('');
-  const [editData, setEditData] = useState({});
+  
+  const [registerFormData, setRegisterFormData] = useState({
+    company_name: '',
+    contact_name: '',
+    contact_email: '',
+    phone: '',
+    website: '',
+    business_type: '',
+    years_in_business: '',
+    number_of_employees: '',
+    expected_monthly_volume: '',
+    business_license: '',
+    tax_id: '',
+    identity_proof: ''
+  });
+
+  const [ruleFormData, setRuleFormData] = useState({
+    product_type: '',
+    sales_channel: '',
+    customer_segment: '',
+    eligible: true,
+    commission_rate_override: '',
+    effective_start: ''
+  });
+
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+  const TIER_INFO = {
+    bronze: {
+      name: 'Bronze',
+      color: 'from-orange-700 to-orange-900',
+      badgeColor: 'bg-orange-600',
+      icon: '🥉',
+      benefits: ['Basic commission rates', 'Standard support', 'Quarterly reviews'],
+      requirements: '$0 - $50K annual volume'
+    },
+    silver: {
+      name: 'Silver',
+      color: 'from-gray-400 to-gray-600',
+      badgeColor: 'bg-gray-500',
+      icon: '🥈',
+      benefits: ['Enhanced commission rates', 'Priority support', 'Monthly reviews', 'Training access'],
+      requirements: '$50K - $250K annual volume'
+    },
+    gold: {
+      name: 'Gold',
+      color: 'from-yellow-500 to-yellow-700',
+      badgeColor: 'bg-yellow-600',
+      icon: '🥇',
+      benefits: ['Premium commission rates', 'Dedicated support', 'Weekly reviews', 'Marketing support'],
+      requirements: '$250K - $1M annual volume'
+    },
+    platinum: {
+      name: 'Platinum',
+      color: 'from-purple-500 to-purple-700',
+      badgeColor: 'bg-purple-600',
+      icon: '💎',
+      benefits: ['VIP commission rates', '24/7 support', 'Daily insights', 'Co-marketing programs', 'Executive access'],
+      requirements: '$1M+ annual volume'
+    }
+  };
 
   useEffect(() => {
     fetchPartners();
+    fetchPendingPartners();
+    fetchEligibilityRules();
   }, []);
-
-  useEffect(() => {
-    filterPartners();
-  }, [partners, searchTerm, filterStatus, filterTier]);
 
   const fetchPartners = async () => {
     try {
-      const response = await axios.get(`${API}/partners/all`, { headers: getAuthHeaders() });
-      setPartners(response.data);
-    } catch (error) {
-      console.error('Failed to fetch partners', error);
-    }
-  };
-
-  const filterPartners = () => {
-    let filtered = [...partners];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(p => 
-        p.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.contact_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.contact_name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(p => p.status === filterStatus);
-    }
-
-    // Tier filter
-    if (filterTier !== 'all') {
-      filtered = filtered.filter(p => p.tier === filterTier);
-    }
-
-    setFilteredPartners(filtered);
-  };
-
-  const openDialog = (partner, type) => {
-    setSelectedPartner(partner);
-    setDialogType(type);
-    if (type === 'edit') {
-      setEditData({
-        tier: partner.tier,
-        status: partner.status,
-        notes: partner.notes || ''
+      const response = await fetch(`${BACKEND_URL}/api/partners/all`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-    }
-    setDialogOpen(true);
-  };
-
-  const handleApprove = async (partnerId) => {
-    try {
-      await axios.post(`${API}/partners/${partnerId}/approve`, 
-        { comments: reviewComments },
-        { headers: getAuthHeaders() }
-      );
-      toast.success('Partner approved and activated!');
-      setDialogOpen(false);
-      setReviewComments('');
-      fetchPartners();
+      if (response.ok) {
+        const data = await response.json();
+        setPartners(data);
+      }
     } catch (error) {
-      toast.error('Failed to approve partner');
+      console.error('Error fetching partners:', error);
     }
   };
 
-  const handleReject = async (partnerId) => {
+  const fetchPendingPartners = async () => {
     try {
-      await axios.post(`${API}/partners/${partnerId}/reject`,
-        { reason: reviewComments },
-        { headers: getAuthHeaders() }
-      );
-      toast.success('Partner application rejected');
-      setDialogOpen(false);
-      setReviewComments('');
-      fetchPartners();
+      const response = await fetch(`${BACKEND_URL}/api/partners/pending`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingPartners(data.filter(p => p.status === 'pending_review' || p.status === 'more_info_needed'));
+      }
     } catch (error) {
-      toast.error('Failed to reject partner');
+      console.error('Error fetching pending partners:', error);
     }
   };
 
-  const handleUpdatePartner = async (partnerId) => {
+  const fetchEligibilityRules = async () => {
     try {
-      await axios.patch(`${API}/partners/${partnerId}`, editData, { headers: getAuthHeaders() });
-      toast.success('Partner updated successfully');
-      setDialogOpen(false);
-      fetchPartners();
+      const response = await fetch(`${BACKEND_URL}/api/eligibility-rules`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEligibilityRules(data);
+      }
     } catch (error) {
-      toast.error('Failed to update partner');
+      console.error('Error fetching eligibility rules:', error);
     }
   };
 
-  const handleDeactivate = async (partnerId) => {
+  const handleRegisterPartner = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      await axios.post(`${API}/partners/${partnerId}/deactivate`, 
-        { reason: reviewComments },
-        { headers: getAuthHeaders() }
-      );
-      toast.success('Partner deactivated');
-      setDialogOpen(false);
-      setReviewComments('');
-      fetchPartners();
+      const response = await fetch(`${BACKEND_URL}/api/partners/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...registerFormData,
+          user_id: user.id
+        })
+      });
+
+      if (response.ok) {
+        await fetchPartners();
+        await fetchPendingPartners();
+        setShowRegisterForm(false);
+        alert('Partner registered successfully! Pending admin approval.');
+      } else {
+        alert('Failed to register partner');
+      }
     } catch (error) {
-      toast.error('Failed to deactivate partner');
+      console.error('Error registering partner:', error);
+      alert('Error registering partner');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusBadge = (status) => {
-    const config = {
-      pending_review: { class: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40', label: 'Pending Review' },
-      under_review: { class: 'bg-blue-500/20 text-blue-300 border-blue-500/40', label: 'Under Review' },
-      approved: { class: 'bg-green-500/20 text-green-300 border-green-500/40', label: 'Active' },
-      rejected: { class: 'bg-red-500/20 text-red-300 border-red-500/40', label: 'Rejected' },
-      inactive: { class: 'bg-slate-500/20 text-slate-300 border-slate-500/40', label: 'Inactive' },
-      more_info_needed: { class: 'bg-orange-500/20 text-orange-300 border-orange-500/40', label: 'More Info Needed' }
-    };
-    const item = config[status] || config.pending_review;
-    return <Badge className={`${item.class} border`}>{item.label}</Badge>;
+  const handleApprovePartner = async (partnerId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ comments: 'Approved by admin' })
+      });
+
+      if (response.ok) {
+        await fetchPartners();
+        await fetchPendingPartners();
+        alert('Partner approved successfully!');
+      }
+    } catch (error) {
+      console.error('Error approving partner:', error);
+    }
   };
 
-  const getTierBadge = (tier) => {
-    const config = {
-      bronze: { class: 'bg-orange-700/30 text-orange-300 border-orange-600/40', icon: '🥉' },
-      silver: { class: 'bg-slate-400/30 text-slate-200 border-slate-500/40', icon: '🥈' },
-      gold: { class: 'bg-yellow-600/30 text-yellow-200 border-yellow-500/40', icon: '🥇' },
-      platinum: { class: 'bg-purple-500/30 text-purple-200 border-purple-400/40', icon: '💎' }
-    };
-    const item = config[tier] || config.bronze;
-    return <Badge className={`${item.class} border`}>{item.icon} {tier.toUpperCase()}</Badge>;
+  const handleRejectPartner = async (partnerId) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason })
+      });
+
+      if (response.ok) {
+        await fetchPartners();
+        await fetchPendingPartners();
+        alert('Partner rejected');
+      }
+    } catch (error) {
+      console.error('Error rejecting partner:', error);
+    }
   };
 
-  const isPartner = user?.role === 'partner';
-  const isAdmin = user?.role === 'admin' || user?.role === 'finance' || user?.role === 'manager';
+  const handleUpdateTier = async (partnerId, newTier) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ tier: newTier })
+      });
 
-  // Partner self-service view
-  if (isPartner) {
-    const myPartner = partners.find(p => p.user_id === user.id);
-    
-    return (
-      <div className="p-6 max-w-7xl mx-auto" data-testid="partner-self-service">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-6" style={{ fontFamily: 'Outfit, sans-serif' }}>
-          Partner Portal
-        </h1>
+      if (response.ok) {
+        await fetchPartners();
+        alert('Partner tier updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating tier:', error);
+    }
+  };
 
-        {myPartner ? (
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="payouts">My Payouts</TabsTrigger>
-              <TabsTrigger value="performance">Performance</TabsTrigger>
-              <TabsTrigger value="documents">Documents</TabsTrigger>
-            </TabsList>
+  const handleCreateRule = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/eligibility-rules`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...ruleFormData,
+          effective_start: new Date(ruleFormData.effective_start).toISOString(),
+          commission_rate_override: ruleFormData.commission_rate_override ? parseFloat(ruleFormData.commission_rate_override) : null
+        })
+      });
 
-            <TabsContent value="overview">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg font-bold">Partner Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm text-slate-400">Company</p>
-                        <p className="font-semibold text-slate-100">{myPartner.company_name}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-400">Tier</p>
-                        {getTierBadge(myPartner.tier)}
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-400">Status</p>
-                        {getStatusBadge(myPartner.status)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+      if (response.ok) {
+        await fetchEligibilityRules();
+        setShowRuleForm(false);
+        setRuleFormData({
+          product_type: '',
+          sales_channel: '',
+          customer_segment: '',
+          eligible: true,
+          commission_rate_override: '',
+          effective_start: ''
+        });
+        alert('Eligibility rule created!');
+      }
+    } catch (error) {
+      console.error('Error creating rule:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg font-bold">Quick Stats</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Total Payouts</span>
-                        <span className="font-semibold text-green-400">$0</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Deals Closed</span>
-                        <span className="font-semibold text-blue-400">0</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Commission Rate</span>
-                        <span className="font-semibold text-purple-400">5%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+  const getPartnersByTier = (tier) => partners.filter(p => p.tier === tier && p.status !== 'rejected');
+  const getTierStats = () => ({
+    bronze: getPartnersByTier('bronze').length,
+    silver: getPartnersByTier('silver').length,
+    gold: getPartnersByTier('gold').length,
+    platinum: getPartnersByTier('platinum').length
+  });
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg font-bold">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Button className="w-full" variant="outline">Submit a Deal</Button>
-                      <Button className="w-full" variant="outline">Upload Documents</Button>
-                      <Button className="w-full" variant="outline">Contact Support</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+  const stats = getTierStats();
+  const totalPartners = partners.filter(p => p.status !== 'rejected').length;
+  const activePartners = partners.filter(p => p.status === 'active' || p.status === 'approved').length;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Partner Management Hub</h1>
+          <p className="text-slate-300">Comprehensive partner, vendor tier, and eligibility management</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Partners</p>
+                  <p className="text-3xl font-bold text-white mt-2">{totalPartners}</p>
+                </div>
+                <Building className="h-12 w-12 text-blue-200" />
               </div>
-            </TabsContent>
-
-            <TabsContent value="payouts">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl font-bold">Payout History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-400">No payouts yet</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="performance">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl font-bold">Performance Metrics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-400">Performance data will appear here</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="documents">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl font-bold">My Documents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-400">Document management coming soon</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-slate-400">No partner profile found. Please contact support.</p>
             </CardContent>
           </Card>
-        )}
-      </div>
-    );
-  }
 
-  // Admin view
-  return (
-    <div className="p-6 max-w-7xl mx-auto" data-testid="partners-admin">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
-            Partners
-          </h1>
-          <p className="text-slate-400">Manage all partner relationships</p>
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Active</p>
+                  <p className="text-3xl font-bold text-white mt-2">{activePartners}</p>
+                </div>
+                <CheckCircle className="h-12 w-12 text-green-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Pending</p>
+                  <p className="text-3xl font-bold text-white mt-2">{pendingPartners.length}</p>
+                </div>
+                <Clock className="h-12 w-12 text-orange-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Gold/Platinum</p>
+                  <p className="text-3xl font-bold text-white mt-2">{stats.gold + stats.platinum}</p>
+                </div>
+                <Award className="h-12 w-12 text-purple-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-pink-500 to-pink-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-pink-100 text-sm">Eligibility Rules</p>
+                  <p className="text-3xl font-bold text-white mt-2">{eligibilityRules.length}</p>
+                </div>
+                <Shield className="h-12 w-12 text-pink-200" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label className="text-slate-100 font-semibold mb-2">Search</Label>
-              <Input
-                placeholder="Search partners..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white/10 border-white/30 text-white"
-                data-testid="input-search"
-              />
-            </div>
-            <div>
-              <Label className="text-slate-100 font-semibold mb-2">Status</Label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full p-2 rounded-lg bg-white/10 border-white/30 text-white"
-                data-testid="filter-status"
-              >
-                <option value="all">All Statuses</option>
-                <option value="pending_review">Pending Review</option>
-                <option value="approved">Active</option>
-                <option value="rejected">Rejected</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <Label className="text-slate-100 font-semibold mb-2">Tier</Label>
-              <select
-                value={filterTier}
-                onChange={(e) => setFilterTier(e.target.value)}
-                className="w-full p-2 rounded-lg bg-white/10 border-white/30 text-white"
-                data-testid="filter-tier"
-              >
-                <option value="all">All Tiers</option>
-                <option value="bronze">Bronze</option>
-                <option value="silver">Silver</option>
-                <option value="gold">Gold</option>
-                <option value="platinum">Platinum</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilterStatus('all');
-                  setFilterTier('all');
-                }}
-                data-testid="btn-clear-filters"
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Main Tabs */}
+        <Tabs defaultValue="partners" className="w-full">
+          <TabsList className="bg-white/10 backdrop-blur-lg border-white/20">
+            <TabsTrigger value="partners" className="data-[state=active]:bg-blue-600">All Partners</TabsTrigger>
+            {(user?.role === 'admin' || user?.role === 'finance') && (
+              <TabsTrigger value="approvals" className="data-[state=active]:bg-blue-600">
+                Pending Approvals ({pendingPartners.length})
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="tiers" className="data-[state=active]:bg-blue-600">Tier Management</TabsTrigger>
+            <TabsTrigger value="eligibility" className="data-[state=active]:bg-blue-600">Eligibility Matrix</TabsTrigger>
+            <TabsTrigger value="register" className="data-[state=active]:bg-blue-600">Register New Partner</TabsTrigger>
+          </TabsList>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="hover:scale-105">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-slate-400">Total Partners</p>
-                <p className="text-3xl font-bold text-blue-400">{partners.length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-                <span className="text-2xl">🤝</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* All Partners Tab */}
+          <TabsContent value="partners" className="mt-6">
+            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Partner Directory</CardTitle>
+                <CardDescription className="text-slate-300">View and manage all partners</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/10">
+                      <TableHead className="text-white">Company</TableHead>
+                      <TableHead className="text-white">Contact</TableHead>
+                      <TableHead className="text-white">Email</TableHead>
+                      <TableHead className="text-white">Tier</TableHead>
+                      <TableHead className="text-white">Status</TableHead>
+                      <TableHead className="text-white">Progress</TableHead>
+                      {(user?.role === 'admin' || user?.role === 'finance') && (
+                        <TableHead className="text-white">Actions</TableHead>
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.filter(p => p.status !== 'rejected').map(partner => (
+                      <TableRow key={partner.id} className="border-white/10" data-testid="partner-row">
+                        <TableCell className="text-white font-medium">{partner.company_name}</TableCell>
+                        <TableCell className="text-slate-300">{partner.contact_name}</TableCell>
+                        <TableCell className="text-slate-300">{partner.contact_email}</TableCell>
+                        <TableCell>
+                          <Badge className={`${TIER_INFO[partner.tier].badgeColor} text-white`}>
+                            {TIER_INFO[partner.tier].icon} {TIER_INFO[partner.tier].name}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-white border-white/30">
+                            {partner.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-blue-500 transition-all"
+                                style={{ width: `${partner.onboarding_progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-white">{partner.onboarding_progress}%</span>
+                          </div>
+                        </TableCell>
+                        {(user?.role === 'admin' || user?.role === 'finance') && (
+                          <TableCell>
+                            <Select
+                              value={partner.tier}
+                              onValueChange={(value) => handleUpdateTier(partner.id, value)}
+                            >
+                              <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bronze">Bronze</SelectItem>
+                                <SelectItem value="silver">Silver</SelectItem>
+                                <SelectItem value="gold">Gold</SelectItem>
+                                <SelectItem value="platinum">Platinum</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <Card className="hover:scale-105">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-slate-400">Pending Review</p>
-                <p className="text-3xl font-bold text-yellow-400">{partners.filter(p => p.status === 'pending_review').length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                <span className="text-2xl">⏳</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Pending Approvals Tab */}
+          <TabsContent value="approvals" className="mt-6">
+            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Pending Partner Approvals</CardTitle>
+                <CardDescription className="text-slate-300">Review and approve partner applications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {pendingPartners.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-300">No pending approvals</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingPartners.map(partner => (
+                      <Card key={partner.id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-semibold text-white mb-2">{partner.company_name}</h3>
+                              <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                  <p className="text-xs text-slate-400">Contact</p>
+                                  <p className="text-white">{partner.contact_name}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-400">Email</p>
+                                  <p className="text-white">{partner.contact_email}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-400">Status</p>
+                                  <Badge className="bg-orange-500">{partner.status}</Badge>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-400">Submitted</p>
+                                  <p className="text-white">{new Date(partner.submitted_at || partner.created_at).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                              {partner.review_history && partner.review_history.length > 0 && (
+                                <div className="mt-4 p-3 bg-white/5 rounded-lg">
+                                  <p className="text-xs text-slate-400 mb-2">Review History:</p>
+                                  {partner.review_history.map((review, idx) => (
+                                    <p key={idx} className="text-sm text-slate-300">
+                                      {review.action} by {review.reviewer} - {review.comments}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button
+                                onClick={() => handleApprovePartner(partner.id)}
+                                className="bg-green-600 hover:bg-green-700"
+                                size="sm"
+                                data-testid="approve-partner-btn"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                onClick={() => handleRejectPartner(partner.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                size="sm"
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <Card className="hover:scale-105">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-slate-400">Active Partners</p>
-                <p className="text-3xl font-bold text-green-400">{partners.filter(p => p.status === 'approved').length}</p>
+          {/* Tier Management Tab */}
+          <TabsContent value="tiers" className="mt-6">
+            <div className="space-y-6">
+              {/* Tier Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {Object.entries(TIER_INFO).map(([tier, info]) => (
+                  <Card key={tier} className={`bg-gradient-to-br ${info.color} border-0`}>
+                    <CardContent className="p-6">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">{info.icon}</div>
+                        <h3 className="text-xl font-bold text-white mb-1">{info.name}</h3>
+                        <p className="text-3xl font-bold text-white mb-2">{stats[tier]}</p>
+                        <p className="text-xs text-white/80">Partners</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                <span className="text-2xl">✅</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="hover:scale-105">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-slate-400">Gold+ Tier</p>
-                <p className="text-3xl font-bold text-purple-400">{partners.filter(p => ['gold', 'platinum'].includes(p.tier)).length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                <span className="text-2xl">⭐</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Partners List */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList>
-          <TabsTrigger value="all">All Partners ({filteredPartners.length})</TabsTrigger>
-          <TabsTrigger value="pending">Pending Approvals ({filteredPartners.filter(p => p.status === 'pending_review').length})</TabsTrigger>
-          <TabsTrigger value="active">Active ({filteredPartners.filter(p => p.status === 'approved').length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all">
-          <div className="space-y-4">
-            {filteredPartners.map(partner => (
-              <Card key={partner.id} className="hover:scale-[1.005]" data-testid={`partner-${partner.id}`}>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                    <div className="lg:col-span-2">
-                      <div className="flex items-start justify-between mb-2">
+              {/* Tier Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(TIER_INFO).map(([tier, info]) => (
+                  <Card key={tier} className="bg-white/10 backdrop-blur-lg border-white/20">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="text-4xl">{info.icon}</div>
                         <div>
-                          <h3 className="text-xl font-bold text-white">{partner.company_name}</h3>
-                          <p className="text-slate-300">{partner.contact_name}</p>
-                          <p className="text-sm text-slate-400">{partner.contact_email}</p>
+                          <CardTitle className="text-white text-2xl">{info.name} Tier</CardTitle>
+                          <CardDescription className="text-slate-300">{info.requirements}</CardDescription>
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-2">
-                        {getStatusBadge(partner.status)}
-                        {getTierBadge(partner.tier)}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-white font-semibold mb-3">Benefits:</p>
+                          <ul className="space-y-2">
+                            {info.benefits.map((benefit, idx) => (
+                              <li key={idx} className="flex items-center gap-2 text-slate-300">
+                                <CheckCircle className="h-4 w-4 text-green-400" />
+                                {benefit}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Eligibility Matrix Tab */}
+          <TabsContent value="eligibility" className="mt-6">
+            {(user?.role === 'admin' || user?.role === 'finance') && (
+              <div className="mb-6">
+                <Button
+                  onClick={() => setShowRuleForm(!showRuleForm)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="create-rule-btn"
+                >
+                  {showRuleForm ? 'Cancel' : '+ Create Eligibility Rule'}
+                </Button>
+              </div>
+            )}
+
+            {showRuleForm && (
+              <Card className="bg-white/10 backdrop-blur-lg border-white/20 mb-6">
+                <CardHeader>
+                  <CardTitle className="text-white">Create Eligibility Rule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCreateRule} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-white">Product Type *</Label>
+                        <Input
+                          value={ruleFormData.product_type}
+                          onChange={(e) => setRuleFormData({ ...ruleFormData, product_type: e.target.value })}
+                          className="bg-white/10 border-white/20 text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Sales Channel *</Label>
+                        <Input
+                          value={ruleFormData.sales_channel}
+                          onChange={(e) => setRuleFormData({ ...ruleFormData, sales_channel: e.target.value })}
+                          className="bg-white/10 border-white/20 text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Customer Segment *</Label>
+                        <Input
+                          value={ruleFormData.customer_segment}
+                          onChange={(e) => setRuleFormData({ ...ruleFormData, customer_segment: e.target.value })}
+                          className="bg-white/10 border-white/20 text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Eligible</Label>
+                        <Select
+                          value={ruleFormData.eligible.toString()}
+                          onValueChange={(value) => setRuleFormData({ ...ruleFormData, eligible: value === 'true' })}
+                        >
+                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="true">Yes</SelectItem>
+                            <SelectItem value="false">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-white">Rate Override (%)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={ruleFormData.commission_rate_override}
+                          onChange={(e) => setRuleFormData({ ...ruleFormData, commission_rate_override: e.target.value })}
+                          className="bg-white/10 border-white/20 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Effective Date *</Label>
+                        <Input
+                          type="date"
+                          value={ruleFormData.effective_start}
+                          onChange={(e) => setRuleFormData({ ...ruleFormData, effective_start: e.target.value })}
+                          className="bg-white/10 border-white/20 text-white"
+                          required
+                        />
                       </div>
                     </div>
-
-                    <div className="text-sm space-y-1">
-                      <p className="text-slate-400">Business Type:</p>
-                      <p className="text-slate-200">{partner.business_type || 'N/A'}</p>
-                      <p className="text-slate-400 mt-2">Years in Business:</p>
-                      <p className="text-slate-200">{partner.years_in_business || 'N/A'}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      {partner.status === 'pending_review' && (
-                        <Button size="sm" onClick={() => openDialog(partner, 'review')} data-testid={`btn-review-${partner.id}`}>
-                          Review Application
-                        </Button>
-                      )}
-                      {partner.status === 'approved' && (
-                        <>
-                          <Button size="sm" variant="outline" onClick={() => openDialog(partner, 'edit')} data-testid={`btn-edit-${partner.id}`}>
-                            Edit Partner
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openDialog(partner, 'view')} data-testid={`btn-view-${partner.id}`}>
-                            View Details
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openDialog(partner, 'deactivate')} data-testid={`btn-deactivate-${partner.id}`}>
-                            Deactivate
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {filteredPartners.length === 0 && (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-center text-slate-400">No partners found</p>
+                    <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700">
+                      {loading ? 'Creating...' : 'Create Rule'}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             )}
-          </div>
-        </TabsContent>
 
-        <TabsContent value="pending">
-          <div className="space-y-4">
-            {filteredPartners.filter(p => p.status === 'pending_review').map(partner => (
-              <Card key={partner.id}>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start">
+            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Commission Eligibility Matrix</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {eligibilityRules.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-300">No eligibility rules defined</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/10">
+                        <TableHead className="text-white">Product Type</TableHead>
+                        <TableHead className="text-white">Sales Channel</TableHead>
+                        <TableHead className="text-white">Segment</TableHead>
+                        <TableHead className="text-white">Eligible</TableHead>
+                        <TableHead className="text-white">Rate Override</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {eligibilityRules.map(rule => (
+                        <TableRow key={rule.id} className="border-white/10">
+                          <TableCell className="text-white">{rule.product_type}</TableCell>
+                          <TableCell className="text-slate-300">{rule.sales_channel}</TableCell>
+                          <TableCell className="text-slate-300">{rule.customer_segment}</TableCell>
+                          <TableCell>
+                            {rule.eligible ? (
+                              <CheckCircle className="h-5 w-5 text-green-400" />
+                            ) : (
+                              <XCircle className="h-5 w-5 text-red-400" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-slate-300">
+                            {rule.commission_rate_override ? `${rule.commission_rate_override}%` : '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Register New Partner Tab */}
+          <TabsContent value="register" className="mt-6">
+            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Register New Partner</CardTitle>
+                <CardDescription className="text-slate-300">Submit a new partner application</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleRegisterPartner} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-lg font-bold text-white">{partner.company_name}</h3>
-                      <p className="text-slate-300">{partner.contact_email}</p>
+                      <Label className="text-white">Company Name *</Label>
+                      <Input
+                        value={registerFormData.company_name}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, company_name: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                        required
+                      />
                     </div>
-                    <Button onClick={() => openDialog(partner, 'review')}>Review</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="active">
-          <div className="space-y-4">
-            {filteredPartners.filter(p => p.status === 'approved').map(partner => (
-              <Card key={partner.id}>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-bold text-white">{partner.company_name}</h3>
-                      <p className="text-slate-300">{partner.contact_email}</p>
-                      <div className="mt-2">{getTierBadge(partner.tier)}</div>
+                      <Label className="text-white">Contact Name *</Label>
+                      <Input
+                        value={registerFormData.contact_name}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, contact_name: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                        required
+                      />
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => openDialog(partner, 'edit')}>Edit</Button>
-                      <Button variant="outline" onClick={() => openDialog(partner, 'view')}>View</Button>
+                    <div>
+                      <Label className="text-white">Contact Email *</Label>
+                      <Input
+                        type="email"
+                        value={registerFormData.contact_email}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, contact_email: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white">Phone</Label>
+                      <Input
+                        value={registerFormData.phone}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, phone: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white">Website</Label>
+                      <Input
+                        value={registerFormData.website}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, website: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white">Business Type</Label>
+                      <Input
+                        value={registerFormData.business_type}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, business_type: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white">Years in Business</Label>
+                      <Input
+                        type="number"
+                        value={registerFormData.years_in_business}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, years_in_business: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white">Number of Employees</Label>
+                      <Input
+                        type="number"
+                        value={registerFormData.number_of_employees}
+                        onChange={(e) => setRegisterFormData({ ...registerFormData, number_of_employees: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
 
-      {/* Dialogs */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              {dialogType === 'review' && 'Review Partner Application'}
-              {dialogType === 'edit' && 'Edit Partner'}
-              {dialogType === 'view' && 'Partner Details'}
-              {dialogType === 'deactivate' && 'Deactivate Partner'}
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedPartner && (
-            <div className="space-y-4">
-              {dialogType === 'review' && (
-                <>
-                  <div>
-                    <p className="font-semibold text-white">Company: {selectedPartner.company_name}</p>
-                    <p className="text-sm text-slate-300">{selectedPartner.contact_name} - {selectedPartner.contact_email}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-100 font-semibold">Review Comments</Label>
-                    <Textarea
-                      value={reviewComments}
-                      onChange={(e) => setReviewComments(e.target.value)}
-                      className="bg-white/10 border-white/30 text-white"
-                    />
-                  </div>
-                </>
-              )}
-
-              {dialogType === 'edit' && (
-                <>
-                  <div>
-                    <Label className="text-slate-100 font-semibold">Tier</Label>
-                    <select
-                      value={editData.tier}
-                      onChange={(e) => setEditData({ ...editData, tier: e.target.value })}
-                      className="w-full p-2 rounded-lg bg-white/10 border-white/30 text-white mt-2"
-                    >
-                      <option value="bronze">Bronze</option>
-                      <option value="silver">Silver</option>
-                      <option value="gold">Gold</option>
-                      <option value="platinum">Platinum</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label className="text-slate-100 font-semibold">Status</Label>
-                    <select
-                      value={editData.status}
-                      onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                      className="w-full p-2 rounded-lg bg-white/10 border-white/30 text-white mt-2"
-                    >
-                      <option value="approved">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label className="text-slate-100 font-semibold">Notes</Label>
-                    <Textarea
-                      value={editData.notes}
-                      onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                      className="bg-white/10 border-white/30 text-white"
-                    />
-                  </div>
-                </>
-              )}
-
-              {dialogType === 'deactivate' && (
-                <div>
-                  <Label className="text-slate-100 font-semibold">Reason for Deactivation</Label>
-                  <Textarea
-                    value={reviewComments}
-                    onChange={(e) => setReviewComments(e.target.value)}
-                    className="bg-white/10 border-white/30 text-white"
-                    placeholder="Please provide a reason..."
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            {dialogType === 'review' && (
-              <>
-                <Button variant="outline" onClick={() => selectedPartner && handleReject(selectedPartner.id)}>
-                  Reject
-                </Button>
-                <Button onClick={() => selectedPartner && handleApprove(selectedPartner.id)}>
-                  Approve
-                </Button>
-              </>
-            )}
-            {dialogType === 'edit' && (
-              <Button onClick={() => selectedPartner && handleUpdatePartner(selectedPartner.id)}>
-                Save Changes
-              </Button>
-            )}
-            {dialogType === 'deactivate' && (
-              <Button onClick={() => selectedPartner && handleDeactivate(selectedPartner.id)} className="bg-red-500">
-                Confirm Deactivate
-              </Button>
-            )}
-            {dialogType === 'view' && (
-              <Button onClick={() => setDialogOpen(false)}>Close</Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    data-testid="register-partner-btn"
+                  >
+                    {loading ? 'Registering...' : 'Register Partner'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
-};
+}
+
+export default Partners;
