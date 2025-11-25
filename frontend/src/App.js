@@ -81,6 +81,11 @@ const Navigation = () => {
                   Approvals
                 </Link>
               )}
+              {user.role === 'admin' && (
+                <Link to="/access-control" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-access-control">
+                  Access Control
+                </Link>
+              )}
               <Link to="/analytics" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-analytics">
                 Analytics
               </Link>
