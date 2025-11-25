@@ -189,6 +189,14 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/access-control"
+          element={
+            <ProtectedRoute>
+              <AccessControl />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <Toaster position="top-right" data-testid="toast-container" />
