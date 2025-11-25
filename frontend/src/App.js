@@ -72,6 +72,16 @@ const Navigation = () => {
               <Link to="/partners" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partners">
                 Partners
               </Link>
+              {(user.role === 'admin' || user.role === 'finance') && (
+                <>
+                  <Link to="/spiff-center" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-spiff-center">
+                    Spiffs
+                  </Link>
+                  <Link to="/vendor-tiers" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-vendor-tiers">
+                    Tiers
+                  </Link>
+                </>
+              )}
               {(user.role === 'admin' || user.role === 'manager' || user.role === 'finance') && (
                 <Link to="/approval-center" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-approval-center">
                   Approvals
