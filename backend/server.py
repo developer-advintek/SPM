@@ -1396,6 +1396,230 @@ async def list_data_sources(current_user: User = Depends(require_role(["admin"])
             s['last_sync'] = datetime.fromisoformat(s['last_sync'])
     return sources
 
+# ============= CUSTOM ROLE ENDPOINTS =============
+
+@api_router.post("/roles/custom")
+async def create_custom_role(role_data: CustomRoleCreate, current_user: User = Depends(require_role(["admin"]))):
+    role = CustomRole(**role_data.model_dump(), created_by=current_user.id)
+    doc = role.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.custom_roles.insert_one(doc)
+    await create_audit_log(current_user.id, "custom_role_created", "custom_role", role.id, None, doc)
+    return role
+
+@api_router.get("/roles/custom")
+async def list_custom_roles(current_user: User = Depends(require_role(["admin"]))):
+    roles = await db.custom_roles.find({}, {"_id": 0}).to_list(100)
+    for r in roles:
+        if isinstance(r['created_at'], str):
+            r['created_at'] = datetime.fromisoformat(r['created_at'])
+        if isinstance(r['updated_at'], str):
+            r['updated_at'] = datetime.fromisoformat(r['updated_at'])
+    return roles
+
+@api_router.get("/roles/custom/{role_id}")
+async def get_custom_role(role_id: str, current_user: User = Depends(require_role(["admin"]))):
+    role = await db.custom_roles.find_one({"id": role_id}, {"_id": 0})
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    if isinstance(role['created_at'], str):
+        role['created_at'] = datetime.fromisoformat(role['created_at'])
+    if isinstance(role['updated_at'], str):
+        role['updated_at'] = datetime.fromisoformat(role['updated_at'])
+    return role
+
+@api_router.patch("/roles/custom/{role_id}")
+async def update_custom_role(role_id: str, update_data: dict, current_user: User = Depends(require_role(["admin"]))):
+    role = await db.custom_roles.find_one({"id": role_id}, {"_id": 0})
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.custom_roles.update_one({"id": role_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "custom_role_updated", "custom_role", role_id, role, update_data)
+    return {"message": "Custom role updated successfully"}
+
+@api_router.delete("/roles/custom/{role_id}")
+async def delete_custom_role(role_id: str, current_user: User = Depends(require_role(["admin"]))):
+    result = await db.custom_roles.delete_one({"id": role_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Role not found")
+    await create_audit_log(current_user.id, "custom_role_deleted", "custom_role", role_id, None, None)
+    return {"message": "Custom role deleted successfully"}
+
+# ============= CUSTOM GROUP ENDPOINTS =============
+
+@api_router.post("/groups/custom")
+async def create_custom_group(group_data: CustomGroupCreate, current_user: User = Depends(require_role(["admin"]))):
+    group = CustomGroup(**group_data.model_dump(), created_by=current_user.id)
+    doc = group.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.custom_groups.insert_one(doc)
+    await create_audit_log(current_user.id, "custom_group_created", "custom_group", group.id, None, doc)
+    return group
+
+@api_router.get("/groups/custom")
+async def list_custom_groups(current_user: User = Depends(require_role(["admin"]))):
+    groups = await db.custom_groups.find({}, {"_id": 0}).to_list(100)
+    for g in groups:
+        if isinstance(g['created_at'], str):
+            g['created_at'] = datetime.fromisoformat(g['created_at'])
+        if isinstance(g['updated_at'], str):
+            g['updated_at'] = datetime.fromisoformat(g['updated_at'])
+    return groups
+
+@api_router.get("/groups/custom/{group_id}")
+async def get_custom_group(group_id: str, current_user: User = Depends(require_role(["admin"]))):
+    group = await db.custom_groups.find_one({"id": group_id}, {"_id": 0})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if isinstance(group['created_at'], str):
+        group['created_at'] = datetime.fromisoformat(group['created_at'])
+    if isinstance(group['updated_at'], str):
+        group['updated_at'] = datetime.fromisoformat(group['updated_at'])
+    return group
+
+@api_router.patch("/groups/custom/{group_id}")
+async def update_custom_group(group_id: str, update_data: dict, current_user: User = Depends(require_role(["admin"]))):
+    group = await db.custom_groups.find_one({"id": group_id}, {"_id": 0})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.custom_groups.update_one({"id": group_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "custom_group_updated", "custom_group", group_id, group, update_data)
+    return {"message": "Custom group updated successfully"}
+
+@api_router.delete("/groups/custom/{group_id}")
+async def delete_custom_group(group_id: str, current_user: User = Depends(require_role(["admin"]))):
+    result = await db.custom_groups.delete_one({"id": group_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Group not found")
+    await create_audit_log(current_user.id, "custom_group_deleted", "custom_group", group_id, None, None)
+    return {"message": "Custom group deleted successfully"}
+
+@api_router.get("/permissions/available")
+async def get_available_permissions(current_user: User = Depends(require_role(["admin"]))):
+    \"\"\"Get all available permissions in the system\"\"\"
+    permissions = {
+        "user_management": [
+            {"key": "users.view", "label": "View Users", "description": "View list of all users"},
+            {"key": "users.create", "label": "Create Users", "description": "Create new internal users"},
+            {"key": "users.edit", "label": "Edit Users", "description": "Modify user information"},
+            {"key": "users.delete", "label": "Delete Users", "description": "Delete user accounts"},
+            {"key": "users.change_role", "label": "Change User Roles", "description": "Modify user roles"},
+            {"key": "users.activate_deactivate", "label": "Activate/Deactivate Users", "description": "Toggle user active status"}
+        ],
+        "partner_management": [
+            {"key": "partners.view_all", "label": "View All Partners", "description": "View all partner accounts"},
+            {"key": "partners.view_own", "label": "View Own Partner Data", "description": "View own partner information"},
+            {"key": "partners.create", "label": "Register Partners", "description": "Create new partner accounts"},
+            {"key": "partners.edit", "label": "Edit Partners", "description": "Modify partner information"},
+            {"key": "partners.approve", "label": "Approve Partners", "description": "Approve partner applications"},
+            {"key": "partners.reject", "label": "Reject Partners", "description": "Reject partner applications"},
+            {"key": "partners.assign_tier", "label": "Assign Partner Tiers", "description": "Change partner tier levels"},
+            {"key": "partners.deactivate", "label": "Deactivate Partners", "description": "Deactivate partner accounts"}
+        ],
+        "product_management": [
+            {"key": "products.view", "label": "View Products", "description": "View product catalog"},
+            {"key": "products.create", "label": "Create Products", "description": "Add new products"},
+            {"key": "products.edit", "label": "Edit Products", "description": "Modify product information"},
+            {"key": "products.delete", "label": "Delete Products", "description": "Remove products"},
+            {"key": "products.bulk_upload", "label": "Bulk Upload Products", "description": "Upload products via CSV"}
+        ],
+        "transaction_management": [
+            {"key": "transactions.view_all", "label": "View All Transactions", "description": "View all transactions"},
+            {"key": "transactions.view_own", "label": "View Own Transactions", "description": "View own transactions only"},
+            {"key": "transactions.create", "label": "Create Transactions", "description": "Create new transactions"}
+        ],
+        "commission_management": [
+            {"key": "commissions.view_all", "label": "View All Commissions", "description": "View all commission calculations"},
+            {"key": "commissions.view_own", "label": "View Own Commissions", "description": "View own earnings only"},
+            {"key": "plans.view", "label": "View Commission Plans", "description": "View commission plans"},
+            {"key": "plans.create", "label": "Create Commission Plans", "description": "Create new commission plans"},
+            {"key": "plans.edit", "label": "Edit Commission Plans", "description": "Modify commission plans"},
+            {"key": "plans.delete", "label": "Delete Commission Plans", "description": "Remove commission plans"}
+        ],
+        "spiff_management": [
+            {"key": "spiffs.view", "label": "View Spiffs", "description": "View spiff campaigns"},
+            {"key": "spiffs.create", "label": "Create Spiffs", "description": "Create spiff campaigns"},
+            {"key": "spiffs.edit", "label": "Edit Spiffs", "description": "Modify spiff campaigns"},
+            {"key": "spiffs.activate", "label": "Activate/Deactivate Spiffs", "description": "Change spiff status"}
+        ],
+        "approval_workflows": [
+            {"key": "approvals.view_all", "label": "View All Approvals", "description": "View all approval workflows"},
+            {"key": "approvals.view_assigned", "label": "View Assigned Approvals", "description": "View approvals assigned to me"},
+            {"key": "approvals.create", "label": "Create Workflows", "description": "Create approval workflows"},
+            {"key": "approvals.approve", "label": "Approve", "description": "Approve workflow steps"},
+            {"key": "approvals.reject", "label": "Reject", "description": "Reject workflows"}
+        ],
+        "payout_management": [
+            {"key": "payouts.view_all", "label": "View All Payouts", "description": "View all payouts"},
+            {"key": "payouts.view_own", "label": "View Own Payouts", "description": "View own payouts only"},
+            {"key": "payouts.create", "label": "Create Payouts", "description": "Create new payouts"},
+            {"key": "payouts.approve", "label": "Approve Payouts", "description": "Approve payout processing"},
+            {"key": "payouts.export", "label": "Export Payouts", "description": "Export payout data"}
+        ],
+        "territory_management": [
+            {"key": "territories.view", "label": "View Territories", "description": "View all territories"},
+            {"key": "territories.create", "label": "Create Territories", "description": "Create new territories"},
+            {"key": "territories.edit", "label": "Edit Territories", "description": "Modify territories"},
+            {"key": "territories.assign", "label": "Assign Territories", "description": "Assign territories to reps"}
+        ],
+        "quota_management": [
+            {"key": "quotas.view_all", "label": "View All Quotas", "description": "View all quotas"},
+            {"key": "quotas.view_own", "label": "View Own Quota", "description": "View own quota only"},
+            {"key": "quotas.create", "label": "Create Quotas", "description": "Create new quotas"},
+            {"key": "quotas.edit", "label": "Edit Quotas", "description": "Modify quotas"},
+            {"key": "quotas.bulk_import", "label": "Bulk Import Quotas", "description": "Import quotas via CSV"}
+        ],
+        "forecasting": [
+            {"key": "forecasts.view", "label": "View Forecasts", "description": "View forecast scenarios"},
+            {"key": "forecasts.create", "label": "Create Forecasts", "description": "Create forecast scenarios"},
+            {"key": "forecasts.scenarios", "label": "View Scenarios", "description": "View scenario comparisons"}
+        ],
+        "ticket_management": [
+            {"key": "tickets.view_all", "label": "View All Tickets", "description": "View all support tickets"},
+            {"key": "tickets.view_own", "label": "View Own Tickets", "description": "View own tickets only"},
+            {"key": "tickets.create", "label": "Create Tickets", "description": "Create support tickets"},
+            {"key": "tickets.edit", "label": "Edit Tickets", "description": "Update ticket information"},
+            {"key": "tickets.assign", "label": "Assign Tickets", "description": "Assign tickets to users"},
+            {"key": "tickets.resolve", "label": "Resolve Tickets", "description": "Mark tickets as resolved"}
+        ],
+        "nfm_management": [
+            {"key": "nfms.view", "label": "View NFMs", "description": "View non-financial metrics"},
+            {"key": "nfms.create", "label": "Create NFMs", "description": "Create NFM tracking"},
+            {"key": "nfms.edit", "label": "Edit NFMs", "description": "Modify NFM data"}
+        ],
+        "analytics_reporting": [
+            {"key": "analytics.dashboard", "label": "View Dashboard", "description": "Access main dashboard"},
+            {"key": "analytics.team_performance", "label": "View Team Performance", "description": "View team analytics"},
+            {"key": "analytics.channel_health", "label": "View Channel Health", "description": "View partner channel metrics"},
+            {"key": "analytics.reports", "label": "Generate Reports", "description": "Generate custom reports"},
+            {"key": "analytics.export", "label": "Export Data", "description": "Export analytics data"}
+        ],
+        "eligibility_rules": [
+            {"key": "eligibility.view", "label": "View Eligibility Rules", "description": "View eligibility matrix"},
+            {"key": "eligibility.create", "label": "Create Rules", "description": "Create eligibility rules"},
+            {"key": "eligibility.edit", "label": "Edit Rules", "description": "Modify eligibility rules"}
+        ],
+        "role_group_management": [
+            {"key": "roles.view", "label": "View Roles", "description": "View role definitions"},
+            {"key": "roles.create_custom", "label": "Create Custom Roles", "description": "Create custom roles"},
+            {"key": "roles.edit_custom", "label": "Edit Custom Roles", "description": "Modify custom roles"},
+            {"key": "roles.delete_custom", "label": "Delete Custom Roles", "description": "Remove custom roles"},
+            {"key": "groups.view", "label": "View Groups", "description": "View user groups"},
+            {"key": "groups.create_custom", "label": "Create Custom Groups", "description": "Create custom groups"},
+            {"key": "groups.edit_custom", "label": "Edit Custom Groups", "description": "Modify custom groups"},
+            {"key": "groups.delete_custom", "label": "Delete Custom Groups", "description": "Remove custom groups"}
+        ]
+    }
+    return permissions
+
 # Include the router in the main app
 app.include_router(api_router)
 
