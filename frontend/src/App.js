@@ -9,7 +9,7 @@ import { PlanDesigner } from './pages/PlanDesigner';
 import { ApprovalCenter } from './pages/ApprovalCenter';
 import { Analytics } from './pages/Analytics';
 import { Tickets } from './pages/Tickets';
-import { UserManagement } from './pages/UserManagement';
+import UserManagement from './pages/UserManagement';
 import Partners from './pages/Partners';
 import SpiffCenter from './pages/SpiffCenter';
 import { Button } from './components/ui/button';
