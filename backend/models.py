@@ -113,22 +113,45 @@ class Spiff(SpiffCreate):
 
 # Enhanced Partner Model with Documents and Approvals
 class PartnerDocument(BaseModel):
-    document_type: str  # business_license, tax_document, bank_statement, signed_agreement, identity_proof
+    document_type: str  # business_license, tax_document, bank_statement, signed_agreement, identity_proof, kyc_document
     document_name: str
     document_data: Optional[str] = None  # Base64 encoded document
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     verified: bool = False
     verified_by: Optional[str] = None
     verified_at: Optional[datetime] = None
+    file_size: Optional[int] = None
 
 class PartnerApprovalStep(BaseModel):
     level: int  # 1 for L1, 2 for L2
     approver_id: Optional[str] = None
     approver_name: Optional[str] = None
-    status: str = "pending"  # pending, approved, rejected
+    status: str = "pending"  # pending, approved, rejected, more_info_needed
     action_date: Optional[datetime] = None
     comments: Optional[str] = None
     rejection_reason: Optional[str] = None
+
+class PartnerNote(BaseModel):
+    note_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_by: str
+    created_by_name: str
+    note: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    visibility: str = "internal"  # internal, partner_visible
+
+class ContactPerson(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    designation: Optional[str] = None
+    is_primary: bool = True
+
+class ProductCommission(BaseModel):
+    product_id: str
+    product_name: str
+    base_commission_rate: str  # From product
+    custom_margin: Optional[str] = None  # Additional margin for this partner
+    final_rate: str  # Calculated rate
 
 class DocumentUpload(BaseModel):
     document_type: str
@@ -136,18 +159,27 @@ class DocumentUpload(BaseModel):
     document_data: str  # Base64 encoded
 
 class PartnerCreate(BaseModel):
+    # Company Details
     company_name: str
-    contact_name: str
-    contact_email: str
-    phone: Optional[str] = None
-    website: Optional[str] = None
     business_type: Optional[str] = None
     tax_id: Optional[str] = None
     years_in_business: Optional[int] = None
     number_of_employees: Optional[int] = None
     expected_monthly_volume: Optional[str] = None
     business_address: Optional[str] = None
-    tier: str = "bronze"
+    website: Optional[str] = None
+    
+    # Contact Person Details
+    contact_person_name: str
+    contact_person_email: str
+    contact_person_phone: Optional[str] = None
+    contact_person_designation: Optional[str] = None
+    
+    # Additional contacts (optional)
+    additional_contacts: List[ContactPerson] = []
+    
+    # Tier (only for admin/partner_manager, not for self-registration)
+    tier: Optional[str] = None
 
 class Partner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
