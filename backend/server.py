@@ -682,8 +682,17 @@ async def list_commission_plans(current_user: User = Depends(require_role(["admi
 
 # Continue in next part...
 
-# Include the router in the main app
+# Include the main API router
 app.include_router(api_router)
+
+# Include new modular routers
+from routers import transactions, spiffs, payouts, strategic, accounting
+
+app.include_router(transactions.router)
+app.include_router(spiffs.router)
+app.include_router(payouts.router)
+app.include_router(strategic.router)
+app.include_router(accounting.router)
 
 app.add_middleware(
     CORSMiddleware,
