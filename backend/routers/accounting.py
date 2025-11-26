@@ -131,7 +131,7 @@ async def recognize_revenue(transaction_id: str):
         schedule.append({
             "period": month + 1,
             "date": (datetime.now(timezone.utc).replace(day=1) + 
-                    timezone.timedelta(days=30 * month)).isoformat(),
+                    timedelta(days=30 * month)).isoformat(),
             "amount": float(monthly_amount),
             "status": "scheduled"
         })
