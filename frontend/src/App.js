@@ -71,6 +71,18 @@ const Navigation = () => {
                   </Link>
                 </>
               )}
+              <Link to="/transactions" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-transactions">
+                Transactions
+              </Link>
+              <Link to="/spiffs" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-spiffs">
+                Spiffs
+              </Link>
+              <Link to="/payouts" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-payouts">
+                Payouts
+              </Link>
+              <Link to="/strategic" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-strategic">
+                Strategic
+              </Link>
               <Link to="/partners" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partners">
                 Partners
               </Link>
