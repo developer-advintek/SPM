@@ -1519,7 +1519,7 @@ function PartnerHubComplete() {
                   </h3>
                   
                   {/* Existing Notes */}
-                  {selectedPartner.notes?.length > 0 && (
+                  {Array.isArray(selectedPartner.notes) && selectedPartner.notes.length > 0 && (
                     <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
                       {selectedPartner.notes.map((note, idx) => (
                         <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
