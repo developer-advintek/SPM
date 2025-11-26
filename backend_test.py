@@ -330,7 +330,7 @@ class SPMTester:
             self.log("Payout submitted for approval")
         
         # Test 5: Approve payout
-        response = self.make_request('POST', f"/api/payouts/{payout['id']}/approve", {
+        response = self.make_request('POST', f"/api/payouts/{payout['id']}/approve", params={
             "approver_id": self.test_data['admin_user']['id'],
             "comments": "Approved after review"
         })
