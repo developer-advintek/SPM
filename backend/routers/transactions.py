@@ -191,6 +191,8 @@ async def recalculate_with_splits(transaction_id: str, credit_assignment: dict):
         new_calc_dict = new_calc.model_dump()
         new_calc_dict['calculation_date'] = new_calc_dict['calculation_date'].isoformat()
         new_calc_dict['created_at'] = new_calc_dict['created_at'].isoformat()
+        for key in ['base_amount', 'commission_amount', 'adjustments', 'final_amount', 'holdback_amount']:
+            new_calc_dict[key] = str(new_calc_dict[key])
         
         await db.commission_calculations.insert_one(new_calc_dict)
 
