@@ -20,8 +20,44 @@ db = client[os.environ['DB_NAME']]
 
 partner_router = APIRouter(prefix="/api/partners", tags=["partners"])
 
-# Import auth dependencies (assume they exist in main server.py)
-from server import get_current_user, require_role, create_audit_log, security
+# Import from utils
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from utils.security import verify_token
+
+security = HTTPBearer()
+
+# Dependency to get current user from token
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = verify_token(token)
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    user = await db.users.find_one({"id": payload.get("sub")}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    
+    # Convert datetime fields
+    for key in ['created_at', 'updated_at']:
+        if key in user and isinstance(user[key], str):
+            user[key] = datetime.fromisoformat(user[key])
+    
+    return User(**{k: v for k, v in user.items() if k not in ['password', 'google_id']})
+
+# Helper function for audit logs
+async def create_audit_log(user_id: str, action_type: str, resource_type: str, resource_id: str, state_before: Optional[dict], state_after: Optional[dict]):
+    from models import AuditLog
+    audit = AuditLog(
+        user_id=user_id,
+        action_type=action_type,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        state_before=state_before,
+        state_after=state_after
+    )
+    doc = audit.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.audit_logs.insert_one(doc)
 
 # ============= HELPER FUNCTIONS =============
 
