@@ -403,9 +403,9 @@ class PartnerHubTester:
         # Create a new partner for rejection testing
         partner_data = {
             "company_name": "RejectionTest Corp",
-            "contact_name": "John Doe",
-            "contact_email": "john.doe@rejectiontest.com",
-            "phone": "+1-555-9999",
+            "contact_person_name": "John Doe",
+            "contact_person_email": "john.doe@rejectiontest.com",
+            "contact_person_phone": "+1-555-9999",
             "business_type": "Test Business",
             "tier": "bronze"
         }
