@@ -111,15 +111,68 @@ class Spiff(SpiffCreate):
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# Enhanced Partner Model with Documents and Approvals
+class PartnerDocument(BaseModel):
+    document_type: str
+    document_name: str
+    document_url: Optional[str] = None
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    verified: bool = False
+    verified_by: Optional[str] = None
+    verified_at: Optional[datetime] = None
+
+class PartnerApprovalStep(BaseModel):
+    level: int
+    approver_id: Optional[str] = None
+    approver_name: Optional[str] = None
+    status: str = "pending"
+    action_date: Optional[datetime] = None
+    comments: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+class PartnerCreate(BaseModel):
+    company_name: str
+    contact_name: str
+    contact_email: str
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    business_type: Optional[str] = None
+    tax_id: Optional[str] = None
+    years_in_business: Optional[int] = None
+    number_of_employees: Optional[int] = None
+    expected_monthly_volume: Optional[str] = None
+    business_address: Optional[str] = None
+    tier: str = "bronze"
+
 class Partner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     company_name: str
     contact_name: str
     contact_email: str
-    user_id: str
+    user_id: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    business_type: Optional[str] = None
+    tax_id: Optional[str] = None
+    years_in_business: Optional[int] = None
+    number_of_employees: Optional[int] = None
+    expected_monthly_volume: Optional[str] = None
+    business_address: Optional[str] = None
     tier: str = "bronze"
-    status: str = "pending_review"
+    status: str = "pending_level1"
     onboarding_progress: int = 0
+    documents: List[PartnerDocument] = []
+    approval_workflow: List[PartnerApprovalStep] = []
+    assigned_products: List[str] = []
+    rejection_count: int = 0
+    on_hold: bool = False
+    hold_reason: Optional[str] = None
+    disqualified: bool = False
+    disqualification_reason: Optional[str] = None
+    submitted_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    approved_by: Optional[str] = None
+    created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -256,7 +309,6 @@ class AuditLog(BaseModel):
     state_after: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-# Custom Role & Group Models
 class CustomRoleCreate(BaseModel):
     name: str
     description: str
