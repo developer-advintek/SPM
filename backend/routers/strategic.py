@@ -129,6 +129,8 @@ async def create_quota(quota: QuotaCreate):
     quota_dict['period_end'] = quota_dict['period_end'].isoformat()
     quota_dict['created_at'] = quota_dict['created_at'].isoformat()
     quota_dict['updated_at'] = quota_dict['updated_at'].isoformat()
+    for key in ['quota_amount', 'current_attainment', 'attainment_percent']:
+        quota_dict[key] = str(quota_dict[key])
     
     await db.quotas.insert_one(quota_dict)
     return quota_obj
