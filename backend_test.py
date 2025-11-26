@@ -517,9 +517,9 @@ class PartnerHubTester:
         """Test 10: Partner Self-Registration"""
         partner_data = {
             "company_name": "SelfReg Solutions Ltd",
-            "contact_name": "Mike Wilson",
-            "contact_email": "mike.wilson@selfreg.com",
-            "phone": "+1-555-7777",
+            "contact_person_name": "Mike Wilson",
+            "contact_person_email": "mike.wilson@selfreg.com",
+            "contact_person_phone": "+1-555-7777",
             "website": "https://selfreg-solutions.com",
             "business_type": "Software Development",
             "years_in_business": 5,
