@@ -98,6 +98,8 @@ async def process_transaction_commission(transaction_id: str):
     calc_dict = calc.model_dump()
     calc_dict['calculation_date'] = calc_dict['calculation_date'].isoformat()
     calc_dict['created_at'] = calc_dict['created_at'].isoformat()
+    for key in ['base_amount', 'commission_amount', 'adjustments', 'final_amount', 'holdback_amount']:
+        calc_dict[key] = str(calc_dict[key])
     
     await db.commission_calculations.insert_one(calc_dict)
     
