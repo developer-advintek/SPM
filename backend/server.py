@@ -483,7 +483,13 @@ async def register_partner(partner_data: dict):
         company_name=partner_data.get('company_name'),
         contact_person_name=partner_data.get('contact_person_name'),
         contact_person_email=partner_data.get('contact_person_email'),
+        contact_person_phone=partner_data.get('contact_person_phone'),
         user_id=partner_data.get('user_id'),
+        business_type=partner_data.get('business_type'),
+        years_in_business=partner_data.get('years_in_business'),
+        number_of_employees=partner_data.get('number_of_employees'),
+        expected_monthly_volume=partner_data.get('expected_monthly_volume'),
+        website=partner_data.get('website'),
         tier='bronze',
         status='pending_review',
         onboarding_progress=50
