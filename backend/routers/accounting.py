@@ -67,6 +67,8 @@ async def create_ledger_entry(
     entry_dict = entry.model_dump()
     entry_dict['entry_date'] = entry_dict['entry_date'].isoformat()
     entry_dict['created_at'] = entry_dict['created_at'].isoformat()
+    for key in ['debit_amount', 'credit_amount', 'balance']:
+        entry_dict[key] = str(entry_dict[key])
     
     await db.ledger_entries.insert_one(entry_dict)
     return entry
