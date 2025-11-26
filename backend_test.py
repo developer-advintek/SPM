@@ -513,6 +513,148 @@ class PartnerHubTester:
         except Exception as e:
             self.log_result("Document Upload", False, f"Document upload error: {str(e)}")
     
+    def test_partner_self_registration(self):
+        """Test 10: Partner Self-Registration"""
+        partner_data = {
+            "company_name": "SelfReg Solutions Ltd",
+            "contact_name": "Mike Wilson",
+            "contact_email": "mike.wilson@selfreg.com",
+            "phone": "+1-555-7777",
+            "website": "https://selfreg-solutions.com",
+            "business_type": "Software Development",
+            "years_in_business": 5,
+            "number_of_employees": 25,
+            "expected_monthly_volume": "$150,000",
+            "user_id": str(uuid.uuid4())  # Simulate a user ID
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BASE_URL}/partners/register",
+                json=partner_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                partner_id = result.get("partner_id")
+                
+                if partner_id:
+                    # Verify partner was created with pending_review status
+                    partner_response = self.session.get(f"{BASE_URL}/partners/all")
+                    if partner_response.status_code == 200:
+                        partners = partner_response.json()
+                        self_reg_partner = next((p for p in partners if p["id"] == partner_id), None)
+                        
+                        if self_reg_partner and self_reg_partner["status"] == "pending_review":
+                            self.log_result("Partner Self-Registration", True, "Partner self-registered with status 'pending_review'")
+                        else:
+                            self.log_result("Partner Self-Registration", False, f"Partner status is '{self_reg_partner['status'] if self_reg_partner else 'not found'}', expected 'pending_review'")
+                    else:
+                        self.log_result("Partner Self-Registration", False, f"Failed to retrieve partner after self-registration: {partner_response.status_code}")
+                else:
+                    self.log_result("Partner Self-Registration", False, "No partner_id returned from self-registration")
+            else:
+                self.log_result("Partner Self-Registration", False, f"Failed to self-register partner: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Partner Self-Registration", False, f"Self-registration error: {str(e)}")
+    
+    def test_pending_partners_queue(self):
+        """Test 11: Pending Partners Queue"""
+        try:
+            response = self.session.get(f"{BASE_URL}/partners/pending")
+            
+            if response.status_code == 200:
+                pending_partners = response.json()
+                self.log_result("Pending Partners Queue", True, f"Retrieved {len(pending_partners)} pending partners")
+            else:
+                self.log_result("Pending Partners Queue", False, f"Failed to get pending partners: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Pending Partners Queue", False, f"Pending partners queue error: {str(e)}")
+    
+    def test_request_more_info(self):
+        """Test 12: Request More Information"""
+        if not self.created_partners:
+            self.log_result("Request More Info", False, "No test partner available")
+            return
+            
+        partner_id = self.created_partners[0]
+        request_data = {
+            "message": "Please provide additional financial statements and business references."
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BASE_URL}/partners/{partner_id}/request-more",
+                json=request_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                self.log_result("Request More Info", True, "Information request sent successfully")
+            else:
+                self.log_result("Request More Info", False, f"Failed to request more info: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Request More Info", False, f"Request more info error: {str(e)}")
+    
+    def test_partner_deactivation(self):
+        """Test 13: Partner Deactivation"""
+        # Create a partner specifically for deactivation testing
+        partner_data = {
+            "company_name": "DeactivationTest Corp",
+            "contact_person_name": "Jane Smith",
+            "contact_person_email": "jane.smith@deactivationtest.com",
+            "business_type": "Test Business",
+            "tier": "bronze"
+        }
+        
+        try:
+            # Create partner
+            response = self.session.post(
+                f"{BASE_URL}/partners/admin-create",
+                json=partner_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                deactivation_partner_id = result.get("partner_id")
+                
+                # Deactivate partner
+                deactivation_data = {
+                    "reason": "Business closure - partner requested deactivation"
+                }
+                
+                deactivate_response = self.session.post(
+                    f"{BASE_URL}/partners/{deactivation_partner_id}/deactivate",
+                    json=deactivation_data,
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if deactivate_response.status_code == 200:
+                    # Verify status changed to inactive
+                    partner_response = self.session.get(f"{BASE_URL}/partners/all")
+                    if partner_response.status_code == 200:
+                        partners = partner_response.json()
+                        deactivated_partner = next((p for p in partners if p["id"] == deactivation_partner_id), None)
+                        
+                        if deactivated_partner and deactivated_partner["status"] == "inactive":
+                            self.log_result("Partner Deactivation", True, "Partner successfully deactivated with status 'inactive'")
+                        else:
+                            self.log_result("Partner Deactivation", False, f"Partner status is '{deactivated_partner['status'] if deactivated_partner else 'not found'}', expected 'inactive'")
+                    else:
+                        self.log_result("Partner Deactivation", False, f"Failed to retrieve partner after deactivation: {partner_response.status_code}")
+                else:
+                    self.log_result("Partner Deactivation", False, f"Failed to deactivate partner: {deactivate_response.status_code}", deactivate_response.text)
+            else:
+                self.log_result("Partner Deactivation", False, f"Failed to create partner for deactivation test: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Partner Deactivation", False, f"Partner deactivation error: {str(e)}")
+    
     def run_all_tests(self):
         """Run all Partner Hub tests"""
         print("🚀 Starting Partner Hub Backend API Tests")
