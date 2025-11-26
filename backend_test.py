@@ -103,6 +103,13 @@ class SPMTester:
         if response and response.status_code == 200:
             self.test_data['sales_rep'] = response.json().get('user')
             self.log("Sales rep user created successfully")
+        else:
+            # Try to login if user exists
+            login_data = {"email": rep_data["email"], "password": rep_data["password"]}
+            response = self.make_request('POST', '/api/auth/login', login_data)
+            if response and response.status_code == 200:
+                self.test_data['sales_rep'] = response.json().get('user')
+                self.log("Sales rep user logged in successfully")
         
         # Create test products
         products = [
