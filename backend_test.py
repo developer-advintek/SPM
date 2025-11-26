@@ -682,6 +682,14 @@ class PartnerHubTester:
         self.test_rejection_workflow()
         self.test_document_upload()
         
+        # Additional Partner Hub tests
+        print("\n📋 Running Additional Partner Hub Tests:")
+        print("-" * 40)
+        self.test_partner_self_registration()
+        self.test_pending_partners_queue()
+        self.test_request_more_info()
+        self.test_partner_deactivation()
+        
         # Summary
         print("\n📊 Test Summary:")
         print("=" * 60)
