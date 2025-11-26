@@ -265,6 +265,8 @@ async def create_forecast(forecast: ForecastCreate, created_by: str = "admin"):
     forecast_dict['period_start'] = forecast_dict['period_start'].isoformat()
     forecast_dict['period_end'] = forecast_dict['period_end'].isoformat()
     forecast_dict['created_at'] = forecast_dict['created_at'].isoformat()
+    for key in ['projected_revenue', 'projected_payout', 'projected_cos_percent', 'variance_from_current']:
+        forecast_dict[key] = str(forecast_dict[key])
     
     await db.forecasts.insert_one(forecast_dict)
     return forecast_obj
