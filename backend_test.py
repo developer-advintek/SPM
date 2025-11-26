@@ -475,7 +475,7 @@ class SPMTester:
         transaction_id = self.test_data.get('transaction', {}).get('id', 'test-transaction')
         
         # Test 1: Create ledger entry
-        response = self.make_request('POST', '/api/accounting/ledger/entry', {
+        response = self.make_request('POST', '/api/accounting/ledger/entry', params={
             "transaction_id": transaction_id,
             "account_type": "commission_expense",
             "debit": 1250.00,
