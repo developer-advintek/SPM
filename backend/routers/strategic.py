@@ -321,6 +321,9 @@ async def create_nfm(nfm: NFMCreate):
     
     nfm_dict = nfm_obj.model_dump()
     nfm_dict['created_at'] = nfm_dict['created_at'].isoformat()
+    for key in ['target_value', 'actual_value', 'multiplier_effect', 'threshold_requirement']:
+        if key in nfm_dict and nfm_dict[key] is not None:
+            nfm_dict[key] = str(nfm_dict[key])
     
     await db.nfm.insert_one(nfm_dict)
     return nfm_obj
