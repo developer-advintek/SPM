@@ -148,6 +148,8 @@ async def recognize_revenue(transaction_id: str):
     
     rec_dict = recognition.model_dump()
     rec_dict['created_at'] = rec_dict['created_at'].isoformat()
+    for key in ['total_revenue', 'recognized_revenue', 'deferred_revenue']:
+        rec_dict[key] = str(rec_dict[key])
     
     await db.revenue_recognition.insert_one(rec_dict)
     
