@@ -148,6 +148,38 @@ const AppContent = () => {
           }
         />
         <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <Transactions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/spiffs"
+          element={
+            <ProtectedRoute>
+              <SpiffCenter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payouts"
+          element={
+            <ProtectedRoute>
+              <Payouts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/strategic"
+          element={
+            <ProtectedRoute>
+              <Strategic />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/partners"
           element={
             <ProtectedRoute>
