@@ -183,33 +183,60 @@ class PartnerCreate(BaseModel):
 
 class Partner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    
+    # Company Details
     company_name: str
-    contact_name: str
-    contact_email: str
-    user_id: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
     business_type: Optional[str] = None
     tax_id: Optional[str] = None
     years_in_business: Optional[int] = None
     number_of_employees: Optional[int] = None
     expected_monthly_volume: Optional[str] = None
     business_address: Optional[str] = None
-    tier: str = "bronze"
-    status: str = "pending_level1"
+    website: Optional[str] = None
+    
+    # Contact Person Details
+    contact_person_name: str
+    contact_person_email: str
+    contact_person_phone: Optional[str] = None
+    contact_person_designation: Optional[str] = None
+    additional_contacts: List[ContactPerson] = []
+    
+    # User link (if self-registered)
+    user_id: Optional[str] = None
+    
+    # Partner Management
+    tier: Optional[str] = None  # bronze, silver, gold, platinum (assigned by admin/pm)
+    status: str = "draft"  # draft, pending_review, pending_l1, pending_l2, approved, on_hold, rejected, more_info_needed
     onboarding_progress: int = 0
+    
+    # Workflow tracking
+    created_by: Optional[str] = None
+    created_by_role: Optional[str] = None  # partner, admin, partner_manager
+    reviewed_by: Optional[str] = None  # Admin/PM who reviewed self-registration
+    tier_assigned_by: Optional[str] = None
+    
+    # Documents and Approvals
     documents: List[PartnerDocument] = []
     approval_workflow: List[PartnerApprovalStep] = []
-    assigned_products: List[str] = []
+    notes: List[PartnerNote] = []
+    
+    # Product and Commission
+    assigned_products: List[ProductCommission] = []
+    payout_period: Optional[str] = None  # daily, weekly, monthly, quarterly, semi_annually, yearly
+    
+    # Status tracking
     rejection_count: int = 0
     on_hold: bool = False
     hold_reason: Optional[str] = None
-    disqualified: bool = False
-    disqualification_reason: Optional[str] = None
+    partner_feedback_required: bool = False
+    partner_feedback_message: Optional[str] = None
+    
+    # Timestamps
     submitted_at: Optional[datetime] = None
+    reviewed_at: Optional[datetime] = None
+    l1_approved_at: Optional[datetime] = None
+    l2_approved_at: Optional[datetime] = None
     approved_at: Optional[datetime] = None
-    approved_by: Optional[str] = None
-    created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
