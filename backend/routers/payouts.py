@@ -83,6 +83,8 @@ async def calculate_payout(payout_data: PayoutCreate):
     for key in ['payout_period_start', 'payout_period_end', 'created_at']:
         if key in payout_dict and payout_dict[key]:
             payout_dict[key] = payout_dict[key].isoformat()
+    for key in ['total_commission', 'adjustments', 'deductions', 'net_payout']:
+        payout_dict[key] = str(payout_dict[key])
     
     await db.payouts.insert_one(payout_dict)
     
