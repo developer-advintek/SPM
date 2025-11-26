@@ -113,22 +113,27 @@ class Spiff(SpiffCreate):
 
 # Enhanced Partner Model with Documents and Approvals
 class PartnerDocument(BaseModel):
-    document_type: str
+    document_type: str  # business_license, tax_document, bank_statement, signed_agreement, identity_proof
     document_name: str
-    document_url: Optional[str] = None
+    document_data: Optional[str] = None  # Base64 encoded document
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     verified: bool = False
     verified_by: Optional[str] = None
     verified_at: Optional[datetime] = None
 
 class PartnerApprovalStep(BaseModel):
-    level: int
+    level: int  # 1 for L1, 2 for L2
     approver_id: Optional[str] = None
     approver_name: Optional[str] = None
-    status: str = "pending"
+    status: str = "pending"  # pending, approved, rejected
     action_date: Optional[datetime] = None
     comments: Optional[str] = None
     rejection_reason: Optional[str] = None
+
+class DocumentUpload(BaseModel):
+    document_type: str
+    document_name: str
+    document_data: str  # Base64 encoded
 
 class PartnerCreate(BaseModel):
     company_name: str
