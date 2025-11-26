@@ -674,6 +674,336 @@ async def get_my_partner_info(current_user: User = Depends(get_current_user)):
     
     return partner
 
+# ============= ENHANCED PARTNER HUB ENDPOINTS =============
+
+@api_router.post("/partners/admin-create")
+async def admin_create_partner(partner_data: PartnerCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Admin-led partner creation with full details"""
+    # Initialize approval workflow with L1 and L2 steps
+    approval_workflow = [
+        PartnerApprovalStep(level=1, status="pending").model_dump(),
+        PartnerApprovalStep(level=2, status="pending").model_dump()
+    ]
+    
+    partner = Partner(
+        **partner_data.model_dump(),
+        status="pending_level1",
+        approval_workflow=approval_workflow,
+        created_by=current_user.id,
+        onboarding_progress=30
+    )
+    
+    doc = partner.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    if doc.get('submitted_at'):
+        doc['submitted_at'] = doc['submitted_at'].isoformat()
+    if doc.get('approved_at'):
+        doc['approved_at'] = doc['approved_at'].isoformat()
+    
+    # Convert approval_workflow dates
+    for step in doc['approval_workflow']:
+        if step.get('action_date'):
+            step['action_date'] = step['action_date'].isoformat()
+    
+    # Convert documents dates
+    for document in doc['documents']:
+        if isinstance(document.get('uploaded_at'), datetime):
+            document['uploaded_at'] = document['uploaded_at'].isoformat()
+        if document.get('verified_at'):
+            document['verified_at'] = document['verified_at'].isoformat()
+    
+    await db.partners.insert_one(doc)
+    await create_audit_log(current_user.id, "partner_admin_created", "partner", partner.id, None, doc)
+    
+    return {"message": "Partner created successfully", "partner_id": partner.id}
+
+@api_router.post("/partners/{partner_id}/upload-document")
+async def upload_partner_document(partner_id: str, doc_data: dict, current_user: User = Depends(get_current_user)):
+    """Upload a document for a partner (Base64 encoded)"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Check authorization
+    if current_user.role not in ["admin", "finance"] and partner.get('user_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    new_document = PartnerDocument(
+        document_type=doc_data['document_type'],
+        document_name=doc_data['document_name'],
+        document_data=doc_data['document_data']
+    )
+    
+    documents = partner.get('documents', [])
+    doc_dict = new_document.model_dump()
+    doc_dict['uploaded_at'] = doc_dict['uploaded_at'].isoformat()
+    if doc_dict.get('verified_at'):
+        doc_dict['verified_at'] = doc_dict['verified_at'].isoformat()
+    
+    documents.append(doc_dict)
+    
+    await db.partners.update_one(
+        {"id": partner_id},
+        {"$set": {"documents": documents, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await create_audit_log(current_user.id, "partner_document_uploaded", "partner", partner_id, None, {"document_type": doc_data['document_type']})
+    
+    return {"message": "Document uploaded successfully"}
+
+@api_router.post("/partners/{partner_id}/submit-l1")
+async def submit_for_l1_approval(partner_id: str, current_user: User = Depends(get_current_user)):
+    """Submit partner application for Level 1 approval"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Check authorization
+    if current_user.role not in ["admin", "finance"] and partner.get('user_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    update_data = {
+        "status": "pending_level1",
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "onboarding_progress": 40,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_submitted_l1", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner submitted for Level 1 approval"}
+
+@api_router.post("/partners/{partner_id}/approve-l1")
+async def approve_partner_l1(partner_id: str, approval_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Level 1 approval"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    approval_workflow = partner.get('approval_workflow', [])
+    
+    # Update L1 step
+    for step in approval_workflow:
+        if step['level'] == 1:
+            step['status'] = 'approved'
+            step['approver_id'] = current_user.id
+            step['approver_name'] = current_user.full_name
+            step['action_date'] = datetime.now(timezone.utc).isoformat()
+            step['comments'] = approval_data.get('comments', '')
+            break
+    
+    update_data = {
+        "status": "pending_level2",
+        "approval_workflow": approval_workflow,
+        "onboarding_progress": 60,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_l1_approved", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Level 1 approval completed. Partner moved to Level 2 queue."}
+
+@api_router.post("/partners/{partner_id}/reject-l1")
+async def reject_partner_l1(partner_id: str, rejection_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Level 1 rejection"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    approval_workflow = partner.get('approval_workflow', [])
+    
+    # Update L1 step
+    for step in approval_workflow:
+        if step['level'] == 1:
+            step['status'] = 'rejected'
+            step['approver_id'] = current_user.id
+            step['approver_name'] = current_user.full_name
+            step['action_date'] = datetime.now(timezone.utc).isoformat()
+            step['rejection_reason'] = rejection_data.get('reason', 'Did not meet requirements')
+            step['comments'] = rejection_data.get('comments', '')
+            break
+    
+    rejection_count = partner.get('rejection_count', 0) + 1
+    
+    update_data = {
+        "status": "rejected_level1",
+        "approval_workflow": approval_workflow,
+        "rejection_count": rejection_count,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_l1_rejected", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner application rejected at Level 1"}
+
+@api_router.post("/partners/{partner_id}/approve-l2")
+async def approve_partner_l2(partner_id: str, approval_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Level 2 approval - Final approval"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    approval_workflow = partner.get('approval_workflow', [])
+    
+    # Update L2 step
+    for step in approval_workflow:
+        if step['level'] == 2:
+            step['status'] = 'approved'
+            step['approver_id'] = current_user.id
+            step['approver_name'] = current_user.full_name
+            step['action_date'] = datetime.now(timezone.utc).isoformat()
+            step['comments'] = approval_data.get('comments', '')
+            break
+    
+    update_data = {
+        "status": "approved",
+        "approval_workflow": approval_workflow,
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+        "approved_by": current_user.id,
+        "onboarding_progress": 90,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Activate user if exists
+    if partner.get('user_id'):
+        await db.users.update_one({"id": partner['user_id']}, {"$set": {"active": True}})
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_l2_approved", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner fully approved! Ready for product assignment."}
+
+@api_router.post("/partners/{partner_id}/reject-l2")
+async def reject_partner_l2(partner_id: str, rejection_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Level 2 rejection"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    approval_workflow = partner.get('approval_workflow', [])
+    
+    # Update L2 step
+    for step in approval_workflow:
+        if step['level'] == 2:
+            step['status'] = 'rejected'
+            step['approver_id'] = current_user.id
+            step['approver_name'] = current_user.full_name
+            step['action_date'] = datetime.now(timezone.utc).isoformat()
+            step['rejection_reason'] = rejection_data.get('reason', 'Did not meet requirements')
+            step['comments'] = rejection_data.get('comments', '')
+            break
+    
+    rejection_count = partner.get('rejection_count', 0) + 1
+    
+    update_data = {
+        "status": "rejected_level2",
+        "approval_workflow": approval_workflow,
+        "rejection_count": rejection_count,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_l2_rejected", "partner", partner_id, partner, update_data)
+    
+    return {"message": "Partner application rejected at Level 2"}
+
+@api_router.post("/partners/{partner_id}/assign-products")
+async def assign_products_to_partner(partner_id: str, assignment_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Assign products to an approved partner"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    if partner['status'] != 'approved':
+        raise HTTPException(status_code=400, detail="Partner must be approved before product assignment")
+    
+    product_ids = assignment_data.get('product_ids', [])
+    
+    update_data = {
+        "assigned_products": product_ids,
+        "onboarding_progress": 100,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    await create_audit_log(current_user.id, "partner_products_assigned", "partner", partner_id, partner, update_data)
+    
+    return {"message": f"Successfully assigned {len(product_ids)} products to partner"}
+
+@api_router.get("/partners/l1-queue")
+async def get_l1_approval_queue(current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Get all partners pending Level 1 approval"""
+    partners = await db.partners.find({"status": "pending_level1"}, {"_id": 0}).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and p['submitted_at'] and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and p['approved_at'] and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    
+    return partners
+
+@api_router.get("/partners/l2-queue")
+async def get_l2_approval_queue(current_user: User = Depends(require_role(["admin", "finance"]))):
+    """Get all partners pending Level 2 approval"""
+    partners = await db.partners.find({"status": "pending_level2"}, {"_id": 0}).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at']:
+            if key in p and isinstance(p[key], str):
+                p[key] = datetime.fromisoformat(p[key])
+        if 'submitted_at' in p and p['submitted_at'] and isinstance(p['submitted_at'], str):
+            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
+        if 'approved_at' in p and p['approved_at'] and isinstance(p['approved_at'], str):
+            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
+    
+    return partners
+
+@api_router.get("/partners/{partner_id}/portal")
+async def get_partner_portal(partner_id: str, current_user: User = Depends(get_current_user)):
+    """Get detailed partner information for partner portal"""
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Check authorization
+    if current_user.role not in ["admin", "finance"] and partner.get('user_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Get assigned products details
+    assigned_products = []
+    if partner.get('assigned_products'):
+        for product_id in partner['assigned_products']:
+            product = await db.products.find_one({"id": product_id}, {"_id": 0})
+            if product:
+                for key in ['created_at', 'updated_at']:
+                    if isinstance(product[key], str):
+                        product[key] = datetime.fromisoformat(product[key])
+                for key in ['gross_margin_percent', 'base_commission_rate']:
+                    product[key] = str(product[key])
+                assigned_products.append(product)
+    
+    # Convert dates
+    for key in ['created_at', 'updated_at']:
+        if key in partner and isinstance(partner[key], str):
+            partner[key] = datetime.fromisoformat(partner[key])
+    if 'submitted_at' in partner and partner['submitted_at'] and isinstance(partner['submitted_at'], str):
+        partner['submitted_at'] = datetime.fromisoformat(partner['submitted_at'])
+    if 'approved_at' in partner and partner['approved_at'] and isinstance(partner['approved_at'], str):
+        partner['approved_at'] = datetime.fromisoformat(partner['approved_at'])
+    
+    return {
+        "partner": partner,
+        "assigned_products": assigned_products
+    }
+
 # ============= APPROVAL WORKFLOW ENDPOINTS =============
 
 @api_router.post("/workflows")
