@@ -213,6 +213,54 @@ backend:
           agent: "testing"
           comment: "✅ POST /api/partners/{partner_id}/upload-document working correctly. Base64 encoded documents are successfully uploaded and added to partner's documents array."
 
+  - task: "Partner Self-Registration API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/partners/register working correctly after minor field name fix. Partner self-registered with status 'pending_review' and onboarding progress 50%. Fixed contact field mapping issue."
+
+  - task: "Pending Partners Queue API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/partners/pending working correctly. Returns all pending partners for admin/finance review. Retrieved 14 pending partners successfully."
+
+  - task: "Request More Information API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/partners/{partner_id}/request-more working correctly. Allows admin/finance to request additional information from partners with custom message."
+
+  - task: "Partner Deactivation API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/partners/{partner_id}/deactivate working correctly. Partner status changes to 'inactive' and user account is deactivated. Deactivation reason properly recorded."
+
 frontend:
   - task: "Partner Directory Tab"
     implemented: true
