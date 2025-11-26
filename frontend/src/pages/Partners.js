@@ -1346,7 +1346,7 @@ function PartnerHubComplete() {
                 </div>
 
                 {/* Approval Workflow */}
-                {selectedPartner.approval_workflow?.length > 0 && (
+                {Array.isArray(selectedPartner.approval_workflow) && selectedPartner.approval_workflow.length > 0 && (
                   <div>
                     <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
                       <Shield className="h-5 w-5" />
