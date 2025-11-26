@@ -31,6 +31,7 @@ async def create_territory(territory: TerritoryCreate):
     terr_dict = terr.model_dump()
     terr_dict['created_at'] = terr_dict['created_at'].isoformat()
     terr_dict['updated_at'] = terr_dict['updated_at'].isoformat()
+    terr_dict['account_potential'] = str(terr_dict['account_potential'])
     
     await db.territories.insert_one(terr_dict)
     return terr
