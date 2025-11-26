@@ -4,132 +4,83 @@
     "success": true,
     "message": "Successfully authenticated as admin",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.144335"
+    "timestamp": "2025-11-26T12:27:52.561517"
   },
   {
     "test": "Product Creation",
     "success": true,
     "message": "Created product: Enterprise Software License",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.165943"
+    "timestamp": "2025-11-26T12:27:52.588774"
   },
   {
     "test": "Product Creation",
     "success": true,
     "message": "Created product: Professional Services Package",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.216350"
+    "timestamp": "2025-11-26T12:27:52.640758"
   },
   {
     "test": "Admin Partner Creation",
-    "success": true,
-    "message": "Partner created with status 'pending_level1'",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.237798"
-  },
-  {
-    "test": "Approval Workflow Init",
-    "success": true,
-    "message": "L1 and L2 approval steps initialized correctly",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.237825"
+    "success": false,
+    "message": "Failed to create partner: 422",
+    "details": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"contact_person_name\"],\"msg\":\"Field required\",\"input\":{\"company_name\":\"TechCorp Solutions Inc.\",\"contact_name\":\"Sarah Johnson\",\"contact_email\":\"sarah.johnson@techcorp.com\",\"phone\":\"+1-555-0123\",\"website\":\"https://techcorp-solutions.com\",\"business_type\":\"Technology Consulting\",\"tax_id\":\"12-3456789\",\"years_in_business\":8,\"number_of_employees\":45,\"expected_monthly_volume\":\"$250,000\",\"business_address\":\"123 Innovation Drive, Tech City, TC 12345\",\"tier\":\"silver\"},\"url\":\"https://errors.pydantic.dev/2.12/v/missing\"},{\"type\":\"missing\",\"loc\":[\"body\",\"contact_person_email\"],\"msg\":\"Field required\",\"input\":{\"company_name\":\"TechCorp Solutions Inc.\",\"contact_name\":\"Sarah Johnson\",\"contact_email\":\"sarah.johnson@techcorp.com\",\"phone\":\"+1-555-0123\",\"website\":\"https://techcorp-solutions.com\",\"business_type\":\"Technology Consulting\",\"tax_id\":\"12-3456789\",\"years_in_business\":8,\"number_of_employees\":45,\"expected_monthly_volume\":\"$250,000\",\"business_address\":\"123 Innovation Drive, Tech City, TC 12345\",\"tier\":\"silver\"},\"url\":\"https://errors.pydantic.dev/2.12/v/missing\"}]}",
+    "timestamp": "2025-11-26T12:27:52.650965"
   },
   {
     "test": "L1 Approval Queue",
     "success": true,
-    "message": "L1 queue contains 1 partners including our test partner",
+    "message": "L1 queue retrieved with 0 partners",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.289082"
+    "timestamp": "2025-11-26T12:27:52.664270"
   },
   {
-    "test": "L1 Approval Status",
-    "success": true,
-    "message": "Partner status changed to 'pending_level2'",
+    "test": "L1 Approval",
+    "success": false,
+    "message": "No test partner available for L1 approval",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.318709"
-  },
-  {
-    "test": "L1 Approval Workflow",
-    "success": true,
-    "message": "L1 step marked as 'approved' in workflow",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.318736"
+    "timestamp": "2025-11-26T12:27:52.664303"
   },
   {
     "test": "L2 Approval Queue",
     "success": true,
-    "message": "Partner successfully moved to L2 queue (1 partners)",
+    "message": "L2 queue retrieved with 1 partners",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.369038"
+    "timestamp": "2025-11-26T12:27:52.715602"
   },
   {
-    "test": "L2 Approval Status",
-    "success": true,
-    "message": "Partner status changed to 'approved'",
+    "test": "L2 Approval",
+    "success": false,
+    "message": "No test partner available for L2 approval",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.388475"
-  },
-  {
-    "test": "L2 Approval Workflow",
-    "success": true,
-    "message": "L2 step marked as 'approved' in workflow",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.388499"
-  },
-  {
-    "test": "L2 Onboarding Progress",
-    "success": true,
-    "message": "Onboarding progress is 90%",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.388504"
+    "timestamp": "2025-11-26T12:27:52.715636"
   },
   {
     "test": "Product Assignment",
-    "success": true,
-    "message": "Successfully assigned 2 products",
+    "success": false,
+    "message": "No test partner or products available",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.411608"
+    "timestamp": "2025-11-26T12:27:52.715642"
   },
   {
-    "test": "Product Assignment Progress",
-    "success": true,
-    "message": "Onboarding progress reached 100%",
+    "test": "Partner Portal",
+    "success": false,
+    "message": "No test partner available",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.411630"
+    "timestamp": "2025-11-26T12:27:52.715647"
   },
   {
-    "test": "Partner Portal Data",
-    "success": true,
-    "message": "Portal returned partner details with 2 assigned products",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.421849"
-  },
-  {
-    "test": "Partner Portal State",
-    "success": true,
-    "message": "Partner is in complete approved state",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.421870"
-  },
-  {
-    "test": "Rejection Status",
-    "success": true,
-    "message": "Partner status changed to 'rejected_level1'",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.494259"
-  },
-  {
-    "test": "Rejection Count",
-    "success": true,
-    "message": "Rejection count incremented to 1",
-    "details": null,
-    "timestamp": "2025-11-26T11:15:25.494280"
+    "test": "Rejection Workflow",
+    "success": false,
+    "message": "Failed to create partner for rejection test: 422",
+    "details": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"contact_person_name\"],\"msg\":\"Field required\",\"input\":{\"company_name\":\"RejectionTest Corp\",\"contact_name\":\"John Doe\",\"contact_email\":\"john.doe@rejectiontest.com\",\"phone\":\"+1-555-9999\",\"business_type\":\"Test Business\",\"tier\":\"bronze\"},\"url\":\"https://errors.pydantic.dev/2.12/v/missing\"},{\"type\":\"missing\",\"loc\":[\"body\",\"contact_person_email\"],\"msg\":\"Field required\",\"input\":{\"company_name\":\"RejectionTest Corp\",\"contact_name\":\"John Doe\",\"contact_email\":\"john.doe@rejectiontest.com\",\"phone\":\"+1-555-9999\",\"business_type\":\"Test Business\",\"tier\":\"bronze\"},\"url\":\"https://errors.pydantic.dev/2.12/v/missing\"}]}",
+    "timestamp": "2025-11-26T12:27:52.726608"
   },
   {
     "test": "Document Upload",
-    "success": true,
-    "message": "Document successfully uploaded and added to partner's documents array",
+    "success": false,
+    "message": "No test partner available",
     "details": null,
-    "timestamp": "2025-11-26T11:15:25.514200"
+    "timestamp": "2025-11-26T12:27:52.726640"
   }
 ]
