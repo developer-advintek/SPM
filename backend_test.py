@@ -40,7 +40,10 @@ class SPMTester:
             if method == 'GET':
                 response = self.session.get(url, headers=headers, params=params)
             elif method == 'POST':
-                response = self.session.post(url, headers=headers, json=data)
+                if params:
+                    response = self.session.post(url, headers=headers, params=params)
+                else:
+                    response = self.session.post(url, headers=headers, json=data)
             elif method == 'PUT':
                 response = self.session.put(url, headers=headers, json=data)
             elif method == 'DELETE':
