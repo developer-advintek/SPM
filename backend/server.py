@@ -481,8 +481,8 @@ async def update_spiff(spiff_id: str, update_data: dict, current_user: User = De
 async def register_partner(partner_data: dict):
     partner = Partner(
         company_name=partner_data.get('company_name'),
-        contact_name=partner_data.get('contact_name'),
-        contact_email=partner_data.get('contact_email'),
+        contact_person_name=partner_data.get('contact_person_name'),
+        contact_person_email=partner_data.get('contact_person_email'),
         user_id=partner_data.get('user_id'),
         tier='bronze',
         status='pending_review',
