@@ -108,9 +108,9 @@ class PartnerHubTester:
         """Test 1: Admin Partner Creation"""
         partner_data = {
             "company_name": "TechCorp Solutions Inc.",
-            "contact_name": "Sarah Johnson",
-            "contact_email": "sarah.johnson@techcorp.com",
-            "phone": "+1-555-0123",
+            "contact_person_name": "Sarah Johnson",
+            "contact_person_email": "sarah.johnson@techcorp.com",
+            "contact_person_phone": "+1-555-0123",
             "website": "https://techcorp-solutions.com",
             "business_type": "Technology Consulting",
             "tax_id": "12-3456789",
