@@ -1951,8 +1951,12 @@ async def get_available_permissions(current_user: User = Depends(require_role(["
     }
     return permissions
 
-# Include the router in the main app
+# Include the routers in the main app
 app.include_router(api_router)
+
+# Include Partner Hub routes
+from partner_hub_routes import partner_router
+app.include_router(partner_router)
 
 app.add_middleware(
     CORSMiddleware,
