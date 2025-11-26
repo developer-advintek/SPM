@@ -1434,7 +1434,7 @@ function PartnerHubComplete() {
                     </h3>
                     
                     {/* Current Assignments */}
-                    {selectedPartner.assigned_products?.length > 0 && (
+                    {Array.isArray(selectedPartner.assigned_products) && selectedPartner.assigned_products.length > 0 && (
                       <div className="mb-4 p-4 bg-green-500/10 rounded-lg border border-green-500/30">
                         <p className="text-green-400 font-medium mb-2">Currently Assigned:</p>
                         <div className="space-y-1">
