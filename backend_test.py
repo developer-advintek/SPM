@@ -516,7 +516,7 @@ class SPMTester:
         self.log(f"Account balance: ${balance.get('balance', 0)}")
         
         # Test 4: Create revenue recognition schedule
-        response = self.make_request('POST', '/api/accounting/revenue/recognize', {
+        response = self.make_request('POST', '/api/accounting/revenue/recognize', params={
             "transaction_id": transaction_id
         })
         
