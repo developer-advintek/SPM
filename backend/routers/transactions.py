@@ -148,6 +148,7 @@ async def assign_credit_split(transaction_id: str, assignment: CreditAssignmentC
     
     credit_dict = credit.model_dump()
     credit_dict['created_at'] = credit_dict['created_at'].isoformat()
+    credit_dict['total_credit_percent'] = str(credit_dict['total_credit_percent'])
     
     await db.credit_assignments.insert_one(credit_dict)
     
