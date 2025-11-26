@@ -1,0 +1,135 @@
+[
+  {
+    "test": "Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.144335"
+  },
+  {
+    "test": "Product Creation",
+    "success": true,
+    "message": "Created product: Enterprise Software License",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.165943"
+  },
+  {
+    "test": "Product Creation",
+    "success": true,
+    "message": "Created product: Professional Services Package",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.216350"
+  },
+  {
+    "test": "Admin Partner Creation",
+    "success": true,
+    "message": "Partner created with status 'pending_level1'",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.237798"
+  },
+  {
+    "test": "Approval Workflow Init",
+    "success": true,
+    "message": "L1 and L2 approval steps initialized correctly",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.237825"
+  },
+  {
+    "test": "L1 Approval Queue",
+    "success": true,
+    "message": "L1 queue contains 1 partners including our test partner",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.289082"
+  },
+  {
+    "test": "L1 Approval Status",
+    "success": true,
+    "message": "Partner status changed to 'pending_level2'",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.318709"
+  },
+  {
+    "test": "L1 Approval Workflow",
+    "success": true,
+    "message": "L1 step marked as 'approved' in workflow",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.318736"
+  },
+  {
+    "test": "L2 Approval Queue",
+    "success": true,
+    "message": "Partner successfully moved to L2 queue (1 partners)",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.369038"
+  },
+  {
+    "test": "L2 Approval Status",
+    "success": true,
+    "message": "Partner status changed to 'approved'",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.388475"
+  },
+  {
+    "test": "L2 Approval Workflow",
+    "success": true,
+    "message": "L2 step marked as 'approved' in workflow",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.388499"
+  },
+  {
+    "test": "L2 Onboarding Progress",
+    "success": true,
+    "message": "Onboarding progress is 90%",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.388504"
+  },
+  {
+    "test": "Product Assignment",
+    "success": true,
+    "message": "Successfully assigned 2 products",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.411608"
+  },
+  {
+    "test": "Product Assignment Progress",
+    "success": true,
+    "message": "Onboarding progress reached 100%",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.411630"
+  },
+  {
+    "test": "Partner Portal Data",
+    "success": true,
+    "message": "Portal returned partner details with 2 assigned products",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.421849"
+  },
+  {
+    "test": "Partner Portal State",
+    "success": true,
+    "message": "Partner is in complete approved state",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.421870"
+  },
+  {
+    "test": "Rejection Status",
+    "success": true,
+    "message": "Partner status changed to 'rejected_level1'",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.494259"
+  },
+  {
+    "test": "Rejection Count",
+    "success": true,
+    "message": "Rejection count incremented to 1",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.494280"
+  },
+  {
+    "test": "Document Upload",
+    "success": true,
+    "message": "Document successfully uploaded and added to partner's documents array",
+    "details": null,
+    "timestamp": "2025-11-26T11:15:25.514200"
+  }
+]
