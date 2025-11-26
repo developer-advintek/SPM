@@ -1297,10 +1297,10 @@ function PartnerHubComplete() {
                 <div>
                   <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    Documents ({selectedPartner.documents?.length || 0})
+                    Documents ({Array.isArray(selectedPartner.documents) ? selectedPartner.documents.length : 0})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedPartner.documents?.map((doc, idx) => (
+                    {Array.isArray(selectedPartner.documents) && selectedPartner.documents.map((doc, idx) => (
                       <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
                         <p className="text-white font-medium text-sm">{doc.document_type}</p>
                         <p className="text-slate-400 text-xs">{doc.document_name}</p>
