@@ -31,6 +31,7 @@ async def create_spiff(spiff: SpiffCreate, created_by: str = "admin"):
     spiff_dict['start_date'] = spiff_dict['start_date'].isoformat()
     spiff_dict['end_date'] = spiff_dict['end_date'].isoformat()
     spiff_dict['created_at'] = spiff_dict['created_at'].isoformat()
+    spiff_dict['incentive_amount'] = str(spiff_dict['incentive_amount'])
     
     await db.spiffs.insert_one(spiff_dict)
     return spiff_obj
