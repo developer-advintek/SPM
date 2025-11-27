@@ -3,48 +3,56 @@ import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
 
-// Suppress ResizeObserver errors (harmless development warnings)
-const debounce = (callback, delay) => {
-  let tid;
-  return function (...args) {
-    const ctx = this;
-    tid && clearTimeout(tid);
-    tid = setTimeout(() => {
-      callback.apply(ctx, args);
-    }, delay);
+// AGGRESSIVE ResizeObserver error suppression
+// This error is harmless and only appears in development
+(function() {
+  // Suppress console errors
+  const originalError = console.error;
+  console.error = function(...args) {
+    if (
+      args[0]?.includes?.('ResizeObserver') ||
+      args[0]?.message?.includes?.('ResizeObserver')
+    ) {
+      return;
+    }
+    originalError.apply(console, args);
   };
-};
 
-// Global error handler
-const _ = window.console.error;
-window.console.error = function (msg, ...args) {
-  const suppressedWarnings = [
-    'ResizeObserver loop completed with undelivered notifications',
-    'ResizeObserver loop limit exceeded'
-  ];
+  // Suppress window errors
+  const errorHandler = (event) => {
+    if (
+      event.message?.includes('ResizeObserver') ||
+      event.error?.message?.includes('ResizeObserver')
+    ) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      return false;
+    }
+  };
   
-  if (suppressedWarnings.some(warning => String(msg).includes(warning))) {
-    return;
-  }
+  window.addEventListener('error', errorHandler, true);
   
-  _.call(console, msg, ...args);
-};
+  // Suppress unhandled rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.message?.includes('ResizeObserver')) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      return false;
+    }
+  }, true);
 
-// Also suppress in error events
-window.addEventListener('error', (e) => {
-  if (e.message && (
-    e.message.includes('ResizeObserver loop') ||
-    e.message.includes('ResizeObserver')
-  )) {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    return false;
-  }
-});
+  // Override ResizeObserver to catch and ignore the error
+  const originalResizeObserver = window.ResizeObserver;
+  window.ResizeObserver = class ResizeObserver extends originalResizeObserver {
+    constructor(callback) {
+      super((entries, observer) => {
+        window.requestAnimationFrame(() => {
+          callback(entries, observer);
+        });
+      });
+    }
+  };
+})();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+root.render(<App />); // Removed StrictMode to prevent double rendering
