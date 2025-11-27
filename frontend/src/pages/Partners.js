@@ -51,7 +51,6 @@ function PartnerHubComplete() {
     file_size: 0
   });
 
-  
   const [productAssignment, setProductAssignment] = useState({
     products: [],
     payout_period: 'monthly'
