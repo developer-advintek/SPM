@@ -157,14 +157,11 @@ async def partner_self_register(partner_data: PartnerCreate, current_user: User 
 @partner_router.post("/create")
 async def create_partner_by_manager(partner_data: PartnerCreate, current_user: User = Depends(get_current_user)):
     """
-    Admin/Partner Manager creates partner (with tier assignment)
-    Status: draft → pending_l1 (ready to send to L1)
+    Admin/Partner Manager creates partner (tier assigned during review, not at creation)
+    Status: draft → pending_review (needs tier assignment)
     """
     if not can_manage_partners(current_user):
         raise HTTPException(status_code=403, detail="Only admin or partner manager can create partners")
-    
-    if not partner_data.tier:
-        raise HTTPException(status_code=400, detail="Tier is required when creating partner")
     
     # Initialize approval workflow
     approval_workflow = [
@@ -172,14 +169,19 @@ async def create_partner_by_manager(partner_data: PartnerCreate, current_user: U
         PartnerApprovalStep(level=2, status="pending").model_dump()
     ]
     
+    # Calculate initial progress based on documents
+    initial_progress = 20
+    if partner_data.documents and len(partner_data.documents) >= 2:
+        initial_progress = 30
+    
     partner = Partner(
-        **partner_data.model_dump(),
-        status="draft",
+        **partner_data.model_dump(exclude={'tier'}),
+        tier=None,  # Tier will be assigned during review
+        status="pending_review",
         created_by=current_user.id,
         created_by_role=current_user.role,
-        tier_assigned_by=current_user.id,
         approval_workflow=approval_workflow,
-        onboarding_progress=20
+        onboarding_progress=initial_progress
     )
     
     doc = partner.model_dump()
