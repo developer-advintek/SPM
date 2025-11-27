@@ -230,7 +230,6 @@ function PartnerHubComplete() {
           contact_person_designation: '',
           documents: []
         });
-        setCurrentUploadDoc({ document_type: '', document_name: '', document_data: '' });
         setActiveTab('directory');
       } else {
         const error = await response.json();
