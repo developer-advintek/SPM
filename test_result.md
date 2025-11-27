@@ -261,6 +261,18 @@ backend:
           agent: "testing"
           comment: "✅ POST /api/partners/{partner_id}/deactivate working correctly. Partner status changes to 'inactive' and user account is deactivated. Deactivation reason properly recorded."
 
+  - task: "Document Upload for Self-Registered Partners Bug Fix"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL BUG: Document upload fails for self-registered partners due to documents field type mismatch. /api/partners/register creates documents as dict but /api/partners/{id}/upload-document expects list. Error: AttributeError: 'dict' object has no attribute 'append'. Backend inconsistency needs fixing."
+
 frontend:
   - task: "Partner Directory Tab"
     implemented: true
