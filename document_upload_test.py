@@ -212,7 +212,7 @@ class DocumentUploadTester:
         
         try:
             # Get pending partners for review
-            response = self.session.get(f"{BASE_URL}/partners/pending-review")
+            response = self.session.get(f"{BASE_URL}/partners/pending")
             
             if response.status_code == 200:
                 pending_partners = response.json()
