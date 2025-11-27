@@ -1253,12 +1253,12 @@ function PartnerHubComplete() {
               <CardContent className="overflow-y-auto flex-1 p-6 space-y-6">
                 {/* Company & Contact Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                      <Building className="h-5 w-5" />
+                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <h3 className="text-white font-semibold text-xl mb-4 flex items-center gap-2">
+                      <Building className="h-6 w-6" />
                       Company Details
                     </h3>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-3 text-sm">
                       <div><span className="text-slate-400">Tax ID:</span> <span className="text-white">{selectedPartner.tax_id || 'N/A'}</span></div>
                       <div><span className="text-slate-400">Business Type:</span> <span className="text-white">{selectedPartner.business_type || 'N/A'}</span></div>
                       <div><span className="text-slate-400">Years in Business:</span> <span className="text-white">{selectedPartner.years_in_business || 'N/A'}</span></div>
