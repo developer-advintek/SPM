@@ -1042,7 +1042,7 @@ function PartnerHubComplete() {
                       </div>
                       
                       {/* Uploaded Documents List */}
-                      {onboardingForm.documents.length > 0 && (
+                      {Array.isArray(onboardingForm.documents) && onboardingForm.documents.length > 0 && (
                         <div className="mt-4">
                           <p className="text-white text-sm font-medium mb-2">Uploaded Documents ({onboardingForm.documents.length}):</p>
                           <div className="space-y-2">
