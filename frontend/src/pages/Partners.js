@@ -197,9 +197,10 @@ function PartnerHubComplete() {
         `${BACKEND_URL}/api/partners/create`;
       
       // Include documents in the payload
+      const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
       const payload = {
         ...onboardingForm,
-        documents: onboardingForm.documents.map(doc => ({
+        documents: currentDocs.map(doc => ({
           document_type: doc.document_type,
           document_name: doc.document_name,
           document_data: doc.document_data
