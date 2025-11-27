@@ -5,7 +5,7 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { FileText, Plus, X } from 'lucide-react';
 
-const DOCUMENT_TYPES = [
+export const DOCUMENT_TYPES = [
   { value: 'business_license', label: 'Business License' },
   { value: 'tax_document', label: 'Tax Document' },
   { value: 'bank_statement', label: 'Bank Statement' },
