@@ -1219,10 +1219,10 @@ function PartnerHubComplete() {
           )}
         </Tabs>
 
-        {/* Partner Detail Modal */}
+        {/* Partner Detail Modal - Full Screen */}
         {selectedPartner && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <Card className="bg-slate-900 border-white/20 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <Card className="bg-slate-900 border-white/20 w-full max-w-7xl h-[95vh] flex flex-col">
               <CardHeader className="border-b border-white/10">
                 <div className="flex items-start justify-between">
                   <div>
