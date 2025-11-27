@@ -1281,20 +1281,90 @@ function PartnerHubComplete() {
                   </div>
                 </div>
 
-                {/* Documents */}
+                {/* Documents with View/Download */}
                 <div>
-                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
+                  <h3 className="text-white font-semibold text-xl mb-4 flex items-center gap-2">
+                    <FileText className="h-6 w-6" />
                     Documents ({Array.isArray(selectedPartner.documents) ? selectedPartner.documents.length : 0})
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Array.isArray(selectedPartner.documents) && selectedPartner.documents.map((doc, idx) => (
-                      <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-white font-medium text-sm">{doc.document_type}</p>
-                        <p className="text-slate-400 text-xs">{doc.document_name}</p>
-                        <p className="text-slate-400 text-xs">Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}</p>
-                      </div>
-                    ))}
+                  {Array.isArray(selectedPartner.documents) && selectedPartner.documents.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedPartner.documents.map((doc, idx) => (
+                        <div key={idx} className="p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <FileText className="h-5 w-5 text-blue-400" />
+                                <p className="text-white font-semibold">
+                                  {DOCUMENT_TYPES.find(t => t.value === doc.document_type)?.label || doc.document_type}
+                                </p>
+                              </div>
+                              <p className="text-slate-300 text-sm mb-1">{doc.document_name}</p>
+                              <p className="text-slate-400 text-xs">
+                                Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}
+                              </p>
+                              {doc.verified && (
+                                <div className="mt-2">
+                                  <Badge className="bg-green-600 text-xs">✓ Verified</Badge>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                onClick={() => {
+                                  // Open document in new tab
+                                  const base64Data = doc.document_data;
+                                  const byteCharacters = atob(base64Data);
+                                  const byteNumbers = new Array(byteCharacters.length);
+                                  for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+                                  const blob = new Blob([byteArray], { type: 'application/pdf' });
+                                  const url = URL.createObjectURL(blob);
+                                  window.open(url, '_blank');
+                                }}
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-xs"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Download document
+                                  const base64Data = doc.document_data;
+                                  const byteCharacters = atob(base64Data);
+                                  const byteNumbers = new Array(byteCharacters.length);
+                                  for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+                                  const blob = new Blob([byteArray]);
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = doc.document_name;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                }}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-xs"
+                              >
+                                <Upload className="h-3 w-3 mr-1" />
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-white/5 rounded-lg border border-white/10">
+                      <FileText className="h-12 w-12 text-slate-500 mx-auto mb-2" />
+                      <p className="text-slate-400">No documents uploaded</p>
+                    </div>
+                  )}
                   </div>
                   
                   {/* Upload Document */}
