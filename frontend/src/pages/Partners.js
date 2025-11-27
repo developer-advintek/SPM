@@ -997,26 +997,85 @@ function PartnerHubComplete() {
                     </div>
                   </div>
 
-                  {/* Tier Selection (only for admin/pm) */}
-                  {canManagePartners() && (
-                    <div>
-                      <Label className="text-white">Partner Tier *</Label>
-                      <Select
-                        value={onboardingForm.tier}
-                        onValueChange={(value) => setOnboardingForm({ ...onboardingForm, tier: value })}
-                      >
-                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bronze">Bronze</SelectItem>
-                          <SelectItem value="silver">Silver</SelectItem>
-                          <SelectItem value="gold">Gold</SelectItem>
-                          <SelectItem value="platinum">Platinum</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  {/* Document Upload Section */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      KYC & Legal Documents
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-4">Upload required documents for verification</p>
+                    
+                    {/* Document Upload Form */}
+                    <div className="space-y-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Select
+                          value={currentUploadDoc.document_type}
+                          onValueChange={(value) => setCurrentUploadDoc({ ...currentUploadDoc, document_type: value })}
+                        >
+                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                            <SelectValue placeholder="Select Document Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DOCUMENT_TYPES.map(type => (
+                              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        <Input
+                          id="onboarding-file-input"
+                          type="file"
+                          onChange={handleOnboardingFileUpload}
+                          className="bg-white/10 border-white/20 text-white"
+                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        />
+                        
+                        <Button
+                          type="button"
+                          onClick={addDocumentToOnboarding}
+                          disabled={!currentUploadDoc.document_type || !currentUploadDoc.document_data}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Document
+                        </Button>
+                      </div>
+                      
+                      {/* Uploaded Documents List */}
+                      {onboardingForm.documents.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-white text-sm font-medium mb-2">Uploaded Documents ({onboardingForm.documents.length}):</p>
+                          <div className="space-y-2">
+                            {onboardingForm.documents.map((doc, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2 bg-white/10 rounded">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-blue-400" />
+                                  <div>
+                                    <p className="text-white text-sm font-medium">
+                                      {DOCUMENT_TYPES.find(t => t.value === doc.document_type)?.label || doc.document_type}
+                                    </p>
+                                    <p className="text-slate-400 text-xs">{doc.document_name}</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeDocumentFromOnboarding(idx)}
+                                  size="sm"
+                                  className="bg-red-600 hover:bg-red-700 h-8"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                    
+                    <p className="text-slate-400 text-xs mt-2">
+                      * You can upload multiple documents. Accepted formats: PDF, JPG, PNG, DOC, DOCX
+                    </p>
+                  </div>
 
                   <Button
                     type="submit"
