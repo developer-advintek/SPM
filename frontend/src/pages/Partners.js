@@ -259,39 +259,7 @@ function PartnerHubComplete() {
     }
   };
 
-  const handleOnboardingFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCurrentUploadDoc({
-          ...currentUploadDoc,
-          document_name: file.name,
-          document_data: reader.result.split(',')[1]
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const addDocumentToOnboarding = () => {
-    if (!currentUploadDoc.document_type || !currentUploadDoc.document_data) {
-      alert('Please select document type and file');
-      return;
-    }
-
-    const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
-    
-    setOnboardingForm({
-      ...onboardingForm,
-      documents: [...currentDocs, currentUploadDoc]
-    });
-
-    setCurrentUploadDoc({ document_type: '', document_name: '', document_data: '' });
-    // Reset file input
-    const fileInput = document.getElementById('onboarding-file-input');
-    if (fileInput) fileInput.value = '';
-  };
+  // Document upload functionality is now handled by DocumentUploadSection component
 
   const removeDocumentFromOnboarding = (index) => {
     const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
