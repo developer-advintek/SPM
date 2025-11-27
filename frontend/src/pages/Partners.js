@@ -196,9 +196,15 @@ function PartnerHubComplete() {
         `${BACKEND_URL}/api/partners/self-register` : 
         `${BACKEND_URL}/api/partners/create`;
       
-      const payload = isPartner() ? 
-        { ...onboardingForm, tier: undefined } : // Partners can't set tier
-        onboardingForm;
+      // Include documents in the payload
+      const payload = {
+        ...onboardingForm,
+        documents: onboardingForm.documents.map(doc => ({
+          document_type: doc.document_type,
+          document_name: doc.document_name,
+          document_data: doc.document_data
+        }))
+      };
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -226,8 +232,9 @@ function PartnerHubComplete() {
           contact_person_email: '',
           contact_person_phone: '',
           contact_person_designation: '',
-          tier: 'bronze'
+          documents: []
         });
+        setCurrentUploadDoc({ document_type: '', document_name: '', document_data: '' });
         setActiveTab('directory');
       } else {
         const error = await response.json();
