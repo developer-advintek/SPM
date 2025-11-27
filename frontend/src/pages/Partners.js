@@ -1223,31 +1223,34 @@ function PartnerHubComplete() {
         {selectedPartner && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <Card className="bg-slate-900 border-white/20 w-full max-w-7xl h-[95vh] flex flex-col">
-              <CardHeader className="border-b border-white/10">
+              <CardHeader className="border-b border-white/10 flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-white text-2xl">{selectedPartner.company_name}</CardTitle>
-                    <div className="flex gap-2 mt-2">
+                    <CardTitle className="text-white text-3xl font-bold">{selectedPartner.company_name}</CardTitle>
+                    <div className="flex gap-2 mt-3">
                       {selectedPartner.tier && (
-                        <Badge className={`${TIER_INFO[selectedPartner.tier].color}`}>
+                        <Badge className={`${TIER_INFO[selectedPartner.tier].color} text-base px-3 py-1`}>
                           {TIER_INFO[selectedPartner.tier].icon} {TIER_INFO[selectedPartner.tier].name}
                         </Badge>
                       )}
-                      <Badge className={`${getStatusBadgeColor(selectedPartner.status)}`}>
+                      <Badge className={`${getStatusBadgeColor(selectedPartner.status)} text-base px-3 py-1`}>
                         {selectedPartner.status}
+                      </Badge>
+                      <Badge className="bg-blue-600 text-base px-3 py-1">
+                        {selectedPartner.onboarding_progress}% Complete
                       </Badge>
                     </div>
                   </div>
                   <Button
                     onClick={() => setSelectedPartner(null)}
-                    className="bg-red-600 hover:bg-red-700"
-                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-lg px-6"
+                    size="lg"
                   >
-                    Close
+                    ✕ Close
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6 mt-6">
+              <CardContent className="overflow-y-auto flex-1 p-6 space-y-6">
                 {/* Company & Contact Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
