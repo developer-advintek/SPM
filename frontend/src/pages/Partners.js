@@ -261,15 +261,6 @@ function PartnerHubComplete() {
 
   // Document upload functionality is now handled by DocumentUploadSection component
 
-  const removeDocumentFromOnboarding = (index) => {
-    const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
-    
-    setOnboardingForm({
-      ...onboardingForm,
-      documents: currentDocs.filter((_, i) => i !== index)
-    });
-  };
-
   const handleUploadDocument = async (partnerId) => {
     if (!documentUpload.document_type || !documentUpload.document_data) {
       alert('Please select document type and file');
