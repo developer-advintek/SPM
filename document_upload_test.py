@@ -187,7 +187,7 @@ class DocumentUploadTester:
                         
                         return True
                     else:
-                        self.log_result("Partner Creation", False, f"Partner status is '{created_partner['status'] if created_partner else 'not found'}', expected 'pending_review'")
+                        self.log_result("Partner Creation", False, f"Partner status is '{created_partner['status'] if created_partner else 'not found'}', expected 'pending_level1'")
                         return False
                 else:
                     self.log_result("Partner Creation", False, f"Failed to retrieve partners: {partner_response.status_code}")
