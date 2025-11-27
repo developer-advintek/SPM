@@ -119,8 +119,8 @@ class DocumentUploadTester:
                     partners = partner_response.json()
                     created_partner = next((p for p in partners if p["id"] == partner_id), None)
                     
-                    if created_partner and created_partner["status"] == "pending_review":
-                        self.log_result("Partner Creation", True, "Partner created with status 'pending_review'")
+                    if created_partner and created_partner["status"] == "pending_level1":
+                        self.log_result("Partner Creation", True, "Partner created with status 'pending_level1'")
                         
                         # Check onboarding progress (should be 30%)
                         progress = created_partner.get("onboarding_progress", 0)
