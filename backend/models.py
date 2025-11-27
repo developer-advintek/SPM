@@ -178,6 +178,9 @@ class PartnerCreate(BaseModel):
     # Additional contacts (optional)
     additional_contacts: List[ContactPerson] = []
     
+    # Documents (can be uploaded during registration)
+    documents: List[PartnerDocument] = []
+    
     # Tier (only for admin/partner_manager, not for self-registration)
     tier: Optional[str] = None
 
