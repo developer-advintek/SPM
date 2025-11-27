@@ -118,6 +118,11 @@ async def partner_self_register(partner_data: PartnerCreate, current_user: User 
     if current_user.role != "partner":
         raise HTTPException(status_code=403, detail="Only partners can self-register")
     
+    # Calculate initial progress based on documents
+    initial_progress = 10
+    if partner_data.documents and len(partner_data.documents) >= 2:
+        initial_progress = 25
+    
     # Create partner without tier
     partner = Partner(
         **partner_data.model_dump(exclude={'tier'}),
@@ -126,7 +131,7 @@ async def partner_self_register(partner_data: PartnerCreate, current_user: User 
         created_by=current_user.id,
         created_by_role="partner",
         user_id=current_user.id,
-        onboarding_progress=10
+        onboarding_progress=initial_progress
     )
     
     doc = partner.model_dump()
