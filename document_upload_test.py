@@ -101,9 +101,9 @@ class DocumentUploadTester:
         }
         
         try:
-            # Create partner
+            # Create partner using admin-create endpoint
             response = self.session.post(
-                f"{BASE_URL}/partners/create",
+                f"{BASE_URL}/partners/admin-create",
                 json=partner_data,
                 headers={"Content-Type": "application/json"}
             )
