@@ -51,12 +51,7 @@ function PartnerHubComplete() {
     file_size: 0
   });
 
-  const [currentUploadDoc, setCurrentUploadDoc] = useState({
-    document_type: '',
-    document_name: '',
-    document_data: ''
-  });
-
+  
   const [productAssignment, setProductAssignment] = useState({
     products: [],
     payout_period: 'monthly'
