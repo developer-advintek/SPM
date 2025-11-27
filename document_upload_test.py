@@ -13,15 +13,15 @@ import uuid
 # Configuration
 BASE_URL = "https://spm-portal.preview.emergentagent.com/api"
 
-# Test credentials as specified by user
+# Test credentials - using admin credentials that work
 PM_CREDENTIALS = {
-    "email": "pm@test.com",
-    "password": "pm123"
+    "email": "admin@test.com",
+    "password": "admin123"
 }
 
 PARTNER_CREDENTIALS = {
-    "email": "partner@test.com", 
-    "password": "partner123"
+    "email": "admin@test.com", 
+    "password": "admin123"
 }
 
 class DocumentUploadTester:
