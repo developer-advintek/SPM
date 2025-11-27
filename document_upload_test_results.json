@@ -4,125 +4,48 @@
     "success": true,
     "message": "Successfully authenticated as Partner Manager",
     "details": null,
-    "timestamp": "2025-11-27T13:32:03.397551"
+    "timestamp": "2025-11-27T13:33:14.160047"
   },
   {
     "test": "Partner Creation",
-    "success": true,
-    "message": "Partner created with status 'pending_review'",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.428325"
-  },
-  {
-    "test": "Initial Progress",
     "success": false,
-    "message": "Onboarding progress is 20%, expected 30%",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.428358"
-  },
-  {
-    "test": "Document Upload (business_license)",
-    "success": true,
-    "message": "Successfully uploaded business_license",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.483079"
-  },
-  {
-    "test": "Document Upload (kyc_document)",
-    "success": true,
-    "message": "Successfully uploaded kyc_document",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.499805"
-  },
-  {
-    "test": "Document Upload (tax_document)",
-    "success": true,
-    "message": "Successfully uploaded tax_document",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.553784"
-  },
-  {
-    "test": "Documents Array",
-    "success": true,
-    "message": "Partner has 3 documents in array",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.571474"
-  },
-  {
-    "test": "Document Types",
-    "success": true,
-    "message": "All required document types present",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.571502"
-  },
-  {
-    "test": "Pending Review Queue",
-    "success": false,
-    "message": "Test partner not found in pending review queue",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.583080"
-  },
-  {
-    "test": "Documents Count",
-    "success": true,
-    "message": "All 3 documents persist in partner portal",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.608314"
-  },
-  {
-    "test": "Document Types Match",
-    "success": true,
-    "message": "All document types match expected types",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.608344"
-  },
-  {
-    "test": "Document Names",
-    "success": true,
-    "message": "All document names are correct",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.608351"
+    "message": "Failed to create partner: 403",
+    "details": "{\"detail\":\"Insufficient permissions\"}",
+    "timestamp": "2025-11-27T13:33:14.187450"
   },
   {
     "test": "Authentication (Partner)",
     "success": true,
     "message": "Successfully authenticated as Partner",
     "details": null,
-    "timestamp": "2025-11-27T13:32:03.842901"
+    "timestamp": "2025-11-27T13:33:14.426042"
   },
   {
     "test": "Partner Self-Registration",
     "success": true,
     "message": "Partner successfully self-registered",
     "details": null,
-    "timestamp": "2025-11-27T13:32:03.859110"
+    "timestamp": "2025-11-27T13:33:14.441276"
   },
   {
     "test": "Self-Reg Document Upload (business_license)",
-    "success": true,
-    "message": "Successfully uploaded business_license",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.914094"
+    "success": false,
+    "message": "Failed to upload business_license: 403",
+    "details": "{\"detail\":\"Access denied\"}",
+    "timestamp": "2025-11-27T13:33:14.490746"
   },
   {
     "test": "Self-Reg Document Upload (tax_document)",
-    "success": true,
-    "message": "Successfully uploaded tax_document",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.929916"
+    "success": false,
+    "message": "Failed to upload tax_document: 403",
+    "details": "{\"detail\":\"Access denied\"}",
+    "timestamp": "2025-11-27T13:33:14.504864"
   },
   {
     "test": "Self-Reg Partner Created",
-    "success": true,
-    "message": "Self-registered partner found in system",
+    "success": false,
+    "message": "Self-registered partner not found in system",
     "details": null,
-    "timestamp": "2025-11-27T13:32:03.940912"
-  },
-  {
-    "test": "Self-Reg Documents Saved",
-    "success": true,
-    "message": "Both documents saved for self-registered partner",
-    "details": null,
-    "timestamp": "2025-11-27T13:32:03.940938"
+    "timestamp": "2025-11-27T13:33:14.518019"
   }
 ]
