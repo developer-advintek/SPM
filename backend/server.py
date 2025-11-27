@@ -940,37 +940,9 @@ async def assign_products_to_partner(partner_id: str, assignment_data: dict, cur
     
     return {"message": f"Successfully assigned {len(product_ids)} products to partner"}
 
-@api_router.get("/partners/l1-queue")
-async def get_l1_approval_queue(current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Get all partners pending Level 1 approval"""
-    partners = await db.partners.find({"status": "pending_level1"}, {"_id": 0}).to_list(1000)
-    
-    for p in partners:
-        for key in ['created_at', 'updated_at']:
-            if key in p and isinstance(p[key], str):
-                p[key] = datetime.fromisoformat(p[key])
-        if 'submitted_at' in p and p['submitted_at'] and isinstance(p['submitted_at'], str):
-            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
-        if 'approved_at' in p and p['approved_at'] and isinstance(p['approved_at'], str):
-            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
-    
-    return partners
-
-@api_router.get("/partners/l2-queue")
-async def get_l2_approval_queue(current_user: User = Depends(require_role(["admin", "finance"]))):
-    """Get all partners pending Level 2 approval"""
-    partners = await db.partners.find({"status": "pending_level2"}, {"_id": 0}).to_list(1000)
-    
-    for p in partners:
-        for key in ['created_at', 'updated_at']:
-            if key in p and isinstance(p[key], str):
-                p[key] = datetime.fromisoformat(p[key])
-        if 'submitted_at' in p and p['submitted_at'] and isinstance(p['submitted_at'], str):
-            p['submitted_at'] = datetime.fromisoformat(p['submitted_at'])
-        if 'approved_at' in p and p['approved_at'] and isinstance(p['approved_at'], str):
-            p['approved_at'] = datetime.fromisoformat(p['approved_at'])
-    
-    return partners
+# Old L1/L2 queue endpoints removed - now handled by partner_hub_routes.py with proper role-based access
+# @api_router.get("/partners/l1-queue") - Use partner_hub_routes for L1 approver access
+# @api_router.get("/partners/l2-queue") - Use partner_hub_routes for L2 approver access
 
 @api_router.get("/partners/{partner_id}/portal")
 async def get_partner_portal(partner_id: str, current_user: User = Depends(get_current_user)):
