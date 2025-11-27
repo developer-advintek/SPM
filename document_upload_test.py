@@ -221,14 +221,13 @@ class DocumentUploadTester:
                 if test_partner:
                     self.log_result("Pending Review Queue", True, f"Partner found in pending review queue")
                     
-                    # Assign tier (gold) and approve
+                    # Update tier using patch endpoint
                     review_data = {
-                        "tier": "gold",
-                        "comments": "Partner documentation is complete and meets gold tier requirements"
+                        "tier": "gold"
                     }
                     
                     review_response = self.session.patch(
-                        f"{BASE_URL}/partners/{partner_id}/review",
+                        f"{BASE_URL}/partners/{partner_id}",
                         json=review_data,
                         headers={"Content-Type": "application/json"}
                     )
