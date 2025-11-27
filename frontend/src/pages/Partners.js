@@ -40,7 +40,7 @@ function PartnerHubComplete() {
     contact_person_email: '',
     contact_person_phone: '',
     contact_person_designation: '',
-    tier: 'bronze' // Only for admin/pm
+    documents: [] // Documents to upload during registration
   });
 
   const [documentUpload, setDocumentUpload] = useState({
