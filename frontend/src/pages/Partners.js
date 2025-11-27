@@ -285,9 +285,11 @@ function PartnerHubComplete() {
       return;
     }
 
+    const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
+    
     setOnboardingForm({
       ...onboardingForm,
-      documents: [...onboardingForm.documents, currentUploadDoc]
+      documents: [...currentDocs, currentUploadDoc]
     });
 
     setCurrentUploadDoc({ document_type: '', document_name: '', document_data: '' });
@@ -297,9 +299,11 @@ function PartnerHubComplete() {
   };
 
   const removeDocumentFromOnboarding = (index) => {
+    const currentDocs = Array.isArray(onboardingForm.documents) ? onboardingForm.documents : [];
+    
     setOnboardingForm({
       ...onboardingForm,
-      documents: onboardingForm.documents.filter((_, i) => i !== index)
+      documents: currentDocs.filter((_, i) => i !== index)
     });
   };
 
