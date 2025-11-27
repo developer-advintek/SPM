@@ -264,6 +264,45 @@ function PartnerHubComplete() {
     }
   };
 
+  const handleOnboardingFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCurrentUploadDoc({
+          ...currentUploadDoc,
+          document_name: file.name,
+          document_data: reader.result.split(',')[1]
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addDocumentToOnboarding = () => {
+    if (!currentUploadDoc.document_type || !currentUploadDoc.document_data) {
+      alert('Please select document type and file');
+      return;
+    }
+
+    setOnboardingForm({
+      ...onboardingForm,
+      documents: [...onboardingForm.documents, currentUploadDoc]
+    });
+
+    setCurrentUploadDoc({ document_type: '', document_name: '', document_data: '' });
+    // Reset file input
+    const fileInput = document.getElementById('onboarding-file-input');
+    if (fileInput) fileInput.value = '';
+  };
+
+  const removeDocumentFromOnboarding = (index) => {
+    setOnboardingForm({
+      ...onboardingForm,
+      documents: onboardingForm.documents.filter((_, i) => i !== index)
+    });
+  };
+
   const handleUploadDocument = async (partnerId) => {
     if (!documentUpload.document_type || !documentUpload.document_data) {
       alert('Please select document type and file');
