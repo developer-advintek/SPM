@@ -63,15 +63,6 @@ function PartnerHubComplete() {
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-  const DOCUMENT_TYPES = [
-    { value: 'business_license', label: 'Business License' },
-    { value: 'tax_document', label: 'Tax Document' },
-    { value: 'bank_statement', label: 'Bank Statement' },
-    { value: 'signed_agreement', label: 'Signed Agreement' },
-    { value: 'identity_proof', label: 'Identity Proof' },
-    { value: 'kyc_document', label: 'KYC Document' }
-  ];
-
   const TIER_INFO = {
     bronze: { name: 'Bronze', icon: '🥉', color: 'bg-orange-600' },
     silver: { name: 'Silver', icon: '🥈', color: 'bg-gray-500' },
