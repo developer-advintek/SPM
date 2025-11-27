@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import DocumentUploadSection from '../components/DocumentUploadSection';
 import { 
   Users, Award, CheckCircle, XCircle, Clock, Shield, Building, 
-  AlertCircle, TrendingUp, Upload, FileText, Eye, Plus, MessageSquare,
+  AlertCircle, TrendingUp, Upload, FileText, Eye, MessageSquare,
   Pause, Send, RefreshCw, DollarSign
 } from 'lucide-react';
 
