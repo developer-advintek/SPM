@@ -348,15 +348,18 @@ frontend:
 
   - task: "Document Upload Feature"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/pages/Partners.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "✅ Document upload section in partner modal has document type dropdown with all types (Business License, Tax Document, Bank Statement, Signed Agreement, Identity Proof), file input, and upload button. All components functional."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL: Document upload functionality blocked by JavaScript runtime errors. ResizeObserver loop errors and webpack-dev-server-client-overlay iframe intercepting pointer events. Form fields populate correctly, dropdown opens, but document upload process fails due to UI overlay blocking interactions. Backend APIs working correctly (200 OK responses). Frontend JavaScript errors preventing complete document upload workflow."
 
   - task: "Stats Cards Display"
     implemented: true
