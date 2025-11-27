@@ -347,7 +347,7 @@ class DocumentUploadTester:
         try:
             # Self-register partner
             response = self.session.post(
-                f"{BASE_URL}/partners/self-register",
+                f"{BASE_URL}/partners/register",
                 json=partner_data,
                 headers={"Content-Type": "application/json"}
             )
