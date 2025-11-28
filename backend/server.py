@@ -284,57 +284,18 @@ async def bulk_upload_products(file: UploadFile = File(...), current_user: User 
 #     # DEPRECATED - Use GET /api/sales instead
 #     pass
 
-# ============= COMMISSION CALCULATION & EARNINGS =============
+# ============= OLD COMMISSION CALCULATION (DEPRECATED) =============
+# Commission calculation is now automatic when sales are created via POST /api/sales
+# The new system calculates: base commission (tier-based) + spiff bonuses
 
-async def process_transaction_commission(transaction_id: str):
-    transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
-    if not transaction:
-        return
-    
-    plan = await db.commission_plans.find_one({"plan_type": "individual", "status": "active"}, {"_id": 0})
-    if not plan:
-        return
-    
-    total_amount = Decimal(transaction['total_amount'])
-    base_rate = Decimal('0.05')
-    commission_amount = validate_financial_precision(total_amount * base_rate)
-    
-    calculation = CommissionCalculation(
-        transaction_id=transaction_id,
-        sales_rep_id=transaction['sales_rep_id'],
-        plan_id=plan['id'],
-        base_amount=total_amount,
-        commission_amount=commission_amount,
-        final_amount=commission_amount
-    )
-    
-    doc = calculation.model_dump()
-    doc['calculation_date'] = doc['calculation_date'].isoformat()
-    doc['created_at'] = doc['created_at'].isoformat()
-    for key in ['base_amount', 'commission_amount', 'adjustments', 'final_amount', 'holdback_amount']:
-        doc[key] = str(doc[key])
-    
-    await db.commission_calculations.insert_one(doc)
-    await db.transactions.update_one({"id": transaction_id}, {"$set": {"status": "processed", "processed_at": datetime.now(timezone.utc).isoformat()}})
-    
-    await manager.send_personal_message(
-        {"type": "commission_calculated", "transaction_id": transaction_id, "amount": str(commission_amount)},
-        transaction['sales_rep_id']
-    )
+# async def process_transaction_commission(transaction_id: str):
+#     # DEPRECATED - Commission calculated automatically in sales_commission_routes.py
+#     pass
 
-@api_router.get("/commissions/my-earnings")
-async def get_my_earnings(current_user: User = Depends(get_current_user)):
-    calculations = await db.commission_calculations.find({"sales_rep_id": current_user.id}, {"_id": 0}).to_list(1000)
-    
-    for c in calculations:
-        for key in ['calculation_date', 'created_at']:
-            if isinstance(c[key], str):
-                c[key] = datetime.fromisoformat(c[key])
-        for key in ['base_amount', 'commission_amount', 'adjustments', 'final_amount', 'holdback_amount']:
-            c[key] = Decimal(c[key])
-    
-    total_earnings = sum(Decimal(c['final_amount']) for c in calculations)
-    return {"total_earnings": str(total_earnings), "calculations": calculations}
+# @api_router.get("/commissions/my-earnings")
+# async def get_my_earnings(current_user: User = Depends(get_current_user)):
+#     # DEPRECATED - Use GET /api/analytics/partner/{id} instead
+#     pass
 
 # ============= OLD COMMISSION PLAN ENDPOINTS (DEPRECATED) =============
 # Commission planning is now done through tier-based commissions + spiff campaigns
