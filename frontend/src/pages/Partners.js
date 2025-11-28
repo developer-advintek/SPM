@@ -1235,8 +1235,8 @@ function PartnerHubComplete() {
                     <CardTitle className="text-white text-3xl font-bold">{selectedPartner.company_name}</CardTitle>
                     <div className="flex gap-2 mt-3">
                       {selectedPartner.tier && (
-                        <Badge className={`${TIER_INFO[selectedPartner.tier].color} text-base px-3 py-1`}>
-                          {TIER_INFO[selectedPartner.tier].icon} {TIER_INFO[selectedPartner.tier].name}
+                        <Badge className={`${getTierInfo(selectedPartner.tier).color} text-base px-3 py-1`}>
+                          {getTierInfo(selectedPartner.tier).icon} {getTierInfo(selectedPartner.tier).name}
                         </Badge>
                       )}
                       <Badge className={`${getStatusBadgeColor(selectedPartner.status)} text-base px-3 py-1`}>
