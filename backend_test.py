@@ -171,28 +171,67 @@ class PartnerOnboardingTester:
         
         return None
     
-    def test_l1_approval_queue(self):
-        """Test 2: L1 Approval Queue"""
+    def test_2_l1_gets_queue_and_approves(self, partner_id):
+        """Test 2: Step 2 - L1 Gets Queue & Approves with Tier"""
+        if not partner_id:
+            self.log_result("Step 2 - L1 Queue & Approve", False, "No partner ID available")
+            return False
+            
         try:
-            response = self.session.get(f"{BASE_URL}/partners/l1-queue")
+            # L1 gets queue
+            response = requests.get(
+                f"{BASE_URL}/partners/l1-queue",
+                headers=self.get_headers("l1")
+            )
             
             if response.status_code == 200:
                 l1_queue = response.json()
+                partner_in_queue = any(p["id"] == partner_id for p in l1_queue)
                 
-                # Check if our created partner is in the L1 queue
-                if self.created_partners:
-                    partner_in_queue = any(p["id"] in self.created_partners for p in l1_queue)
-                    if partner_in_queue:
-                        self.log_result("L1 Approval Queue", True, f"L1 queue contains {len(l1_queue)} partners including our test partner")
+                if partner_in_queue:
+                    self.log_result("Step 2a - L1 Gets Queue", True, f"Partner found in L1 queue ({len(l1_queue)} total partners)")
+                    
+                    # L1 Approve with GOLD tier
+                    approval_data = {
+                        "tier": "gold",
+                        "comments": "Approved for Gold tier partnership"
+                    }
+                    
+                    approve_response = requests.post(
+                        f"{BASE_URL}/partners/{partner_id}/l1-approve",
+                        json=approval_data,
+                        headers=self.get_headers("l1")
+                    )
+                    
+                    if approve_response.status_code == 200:
+                        # Verify status changed to pending_l2 and tier set to gold
+                        partner_response = requests.get(
+                            f"{BASE_URL}/partners/directory",
+                            headers=self.get_headers("admin")
+                        )
+                        
+                        if partner_response.status_code == 200:
+                            partners = partner_response.json()
+                            partner = next((p for p in partners if p["id"] == partner_id), None)
+                            
+                            if partner and partner["status"] == "pending_l2" and partner.get("tier") == "gold":
+                                self.log_result("Step 2b - L1 Approve with Tier", True, "Partner status 'pending_l2', tier set to 'gold'")
+                                return True
+                            else:
+                                self.log_result("Step 2b - L1 Approve with Tier", False, f"Status: {partner['status'] if partner else 'not found'}, Tier: {partner.get('tier') if partner else 'N/A'}")
+                        else:
+                            self.log_result("Step 2b - L1 Approve with Tier", False, f"Failed to verify partner: {partner_response.status_code}")
                     else:
-                        self.log_result("L1 Approval Queue", False, "Test partner not found in L1 queue")
+                        self.log_result("Step 2b - L1 Approve with Tier", False, f"L1 approval failed: {approve_response.status_code}", approve_response.text)
                 else:
-                    self.log_result("L1 Approval Queue", True, f"L1 queue retrieved with {len(l1_queue)} partners")
+                    self.log_result("Step 2a - L1 Gets Queue", False, "Partner not found in L1 queue")
             else:
-                self.log_result("L1 Approval Queue", False, f"Failed to get L1 queue: {response.status_code}", response.text)
+                self.log_result("Step 2a - L1 Gets Queue", False, f"Failed to get L1 queue: {response.status_code}", response.text)
                 
         except Exception as e:
-            self.log_result("L1 Approval Queue", False, f"L1 queue error: {str(e)}")
+            self.log_result("Step 2 - L1 Queue & Approve", False, f"L1 approval error: {str(e)}")
+        
+        return False
     
     def test_l1_approval_workflow(self):
         """Test 3: L1 Approval Workflow"""
