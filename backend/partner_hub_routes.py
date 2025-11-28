@@ -5,11 +5,12 @@ Handles partner onboarding, approval workflows, product assignment, and commissi
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
 from datetime import datetime, timezone
+from uuid import uuid4
 from models import (
     Partner, PartnerCreate, PartnerDocument, PartnerApprovalStep, 
     PartnerNote, ContactPerson, ProductCommission, User
 )
-from utils.security import get_password_hash
+from utils.security import get_password_hash as hash_password
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
 
