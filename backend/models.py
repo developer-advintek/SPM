@@ -239,6 +239,11 @@ class Partner(BaseModel):
     hold_reason: Optional[str] = None
     partner_feedback_required: bool = False
     partner_feedback_message: Optional[str] = None
+    previous_status_before_hold: Optional[str] = None
+    hold_initiated_by: Optional[str] = None
+    hold_initiated_by_name: Optional[str] = None
+    hold_date: Optional[datetime] = None
+    resubmission_count: int = 0
     
     # Timestamps
     submitted_at: Optional[datetime] = None
