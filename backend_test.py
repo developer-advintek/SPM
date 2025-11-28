@@ -17,8 +17,8 @@ BASE_URL = "https://partnerpro-2.preview.emergentagent.com/api"
 # Test Credentials (VERIFIED)
 TEST_CREDENTIALS = {
     "admin": {"email": "admin@test.com", "password": "admin123"},
-    "l1": {"email": "l1@test.com", "password": "l1_123"},
-    "l2": {"email": "l2@test.com", "password": "l2_123"}
+    "l1": {"email": "l1@test.com", "password": "l1123"},
+    "l2": {"email": "l2@test.com", "password": "l2123"}
 }
 
 class PartnerOnboardingTester:
