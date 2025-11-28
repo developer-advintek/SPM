@@ -277,57 +277,14 @@ async def get_pending_review_partners(current_user: User = Depends(get_current_u
     
     return partners
 
-@partner_router.patch("/{partner_id}/review")
-async def review_and_assign_tier(
-    partner_id: str, 
-    review_data: dict,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Admin/PM reviews self-registered partner and assigns tier
-    Updates partner details if needed and moves to draft status
-    """
-    if not can_manage_partners(current_user):
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    if partner['status'] != 'pending_review':
-        raise HTTPException(status_code=400, detail="Partner is not in pending review status")
-    
-    # Initialize approval workflow
-    approval_workflow = [
-        PartnerApprovalStep(level=1, status="pending").model_dump(),
-        PartnerApprovalStep(level=2, status="pending").model_dump()
-    ]
-    
-    update_data = {
-        "tier": review_data.get('tier'),
-        "tier_assigned_by": current_user.id,
-        "reviewed_by": current_user.id,
-        "reviewed_at": datetime.now(timezone.utc).isoformat(),
-        "status": "draft",
-        "approval_workflow": approval_workflow,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Allow editing partner details
-    if review_data.get('company_name'):
-        update_data['company_name'] = review_data['company_name']
-    if review_data.get('business_address'):
-        update_data['business_address'] = review_data['business_address']
-    
-    # Update progress
-    partner.update(update_data)
-    progress = await calculate_onboarding_progress(partner)
-    update_data['onboarding_progress'] = progress
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    await create_audit_log(current_user.id, "partner_reviewed_tier_assigned", "partner", partner_id, partner, update_data)
-    
-    return {"message": "Partner reviewed and tier assigned successfully"}
+# ============= OLD REVIEW ENDPOINT (DEPRECATED - NOT USED IN NEW FLOW) =============
+# Partners now go directly to L1 queue, no separate review step
+# Kept commented for reference only
+
+# @partner_router.patch("/{partner_id}/review")
+# async def review_and_assign_tier(...):
+#     # DEPRECATED - Partners go directly to pending_l1 status
+#     pass
 
 # ============= DOCUMENT MANAGEMENT =============
 
