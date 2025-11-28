@@ -78,44 +78,7 @@ class PartnerOnboardingTester:
             "Authorization": f"Bearer {token}"
         }
     
-    def create_test_products(self):
-        """Create test products for assignment"""
-        products_data = [
-            {
-                "sku": "PROD-001",
-                "name": "Enterprise Software License",
-                "category": "Software",
-                "commission_rate_code": "STANDARD",
-                "gross_margin_percent": "45.50",
-                "base_commission_rate": "8.75"
-            },
-            {
-                "sku": "PROD-002", 
-                "name": "Professional Services Package",
-                "category": "Services",
-                "commission_rate_code": "PREMIUM",
-                "gross_margin_percent": "60.00",
-                "base_commission_rate": "12.50"
-            }
-        ]
-        
-        for product_data in products_data:
-            try:
-                response = self.session.post(
-                    f"{BASE_URL}/products",
-                    json=product_data,
-                    headers={"Content-Type": "application/json"}
-                )
-                
-                if response.status_code == 200:
-                    product = response.json()
-                    self.created_products.append(product["id"])
-                    self.log_result("Product Creation", True, f"Created product: {product_data['name']}")
-                else:
-                    self.log_result("Product Creation", False, f"Failed to create product: {response.status_code}", response.text)
-                    
-            except Exception as e:
-                self.log_result("Product Creation", False, f"Product creation error: {str(e)}")
+    # Removed old test methods - using new E2E test flow
     
     def test_1_admin_creates_partner(self):
         """Test 1: Complete Partner Approval Flow - Step 1: Admin Creates Partner"""
