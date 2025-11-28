@@ -135,6 +135,20 @@ function PartnerHubComplete() {
     }
   };
 
+  const fetchOnHold = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/on-hold`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOnHold(data);
+      }
+    } catch (error) {
+      console.error('Error fetching on-hold partners:', error);
+    }
+  };
+
   const fetchL1Queue = async () => {
     if (!canApproveL1()) return;
     try {
