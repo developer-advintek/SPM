@@ -417,11 +417,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Document Upload End-to-End Testing Completed"
-    - "Partner Hub backend testing comprehensive - 14 endpoints tested"
-    - "Backend bug identified in self-registration document upload"
+    - "Comprehensive Partner Onboarding Workflow Testing Completed"
+    - "All partner hub routes in partner_hub_routes.py validated"
+    - "Complete Create → L1 Approve → L2 Approve → Approved workflow tested"
   stuck_tasks:
     - "Document Upload for Self-Registered Partners Bug Fix"
+    - "L1/L2 User Authentication Credentials"
   test_all: false
   test_priority: "high_first"
 
