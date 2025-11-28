@@ -190,8 +190,9 @@ async def partner_self_register(partner_data: PartnerCreate):
 @partner_router.post("/create")
 async def create_partner_by_manager(partner_data: PartnerCreate, current_user: User = Depends(get_current_user)):
     """
-    Admin/Partner Manager creates partner (tier assigned during review, not at creation)
-    Status: draft → pending_review (needs tier assignment)
+    Admin/Partner Manager creates partner and submits directly to L1 approval
+    Can optionally assign tier at creation
+    Status: pending_l1 (goes directly to L1 approval queue)
     """
     if not can_manage_partners(current_user):
         raise HTTPException(status_code=403, detail="Only admin or partner manager can create partners")
@@ -202,19 +203,21 @@ async def create_partner_by_manager(partner_data: PartnerCreate, current_user: U
         PartnerApprovalStep(level=2, status="pending").model_dump()
     ]
     
-    # Calculate initial progress based on documents
+    # Calculate initial progress
     initial_progress = 20
     if partner_data.documents and len(partner_data.documents) >= 2:
         initial_progress = 30
+    if partner_data.tier:
+        initial_progress = 35
     
     partner = Partner(
-        **partner_data.model_dump(exclude={'tier'}),
-        tier=None,  # Tier will be assigned during review
-        status="pending_review",
+        **partner_data.model_dump(),
+        status="pending_l1",  # Goes directly to L1 approval
         created_by=current_user.id,
         created_by_role=current_user.role,
         approval_workflow=approval_workflow,
-        onboarding_progress=initial_progress
+        onboarding_progress=initial_progress,
+        submitted_at=datetime.now(timezone.utc)
     )
     
     doc = partner.model_dump()
