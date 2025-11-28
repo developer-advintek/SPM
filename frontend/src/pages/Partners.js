@@ -1080,8 +1080,8 @@ function PartnerHubComplete() {
                                   </div>
                                   <div>
                                     <p className="text-xs text-slate-400">Tier</p>
-                                    <Badge className={`${TIER_INFO[partner.tier].color}`}>
-                                      {TIER_INFO[partner.tier].icon} {TIER_INFO[partner.tier].name}
+                                    <Badge className={`${getTierInfo(partner.tier).color}`}>
+                                      {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
                                     </Badge>
                                   </div>
                                   <div>
@@ -1159,8 +1159,8 @@ function PartnerHubComplete() {
                                   </div>
                                   <div>
                                     <p className="text-xs text-slate-400">Tier</p>
-                                    <Badge className={`${TIER_INFO[partner.tier].color}`}>
-                                      {TIER_INFO[partner.tier].icon} {TIER_INFO[partner.tier].name}
+                                    <Badge className={`${getTierInfo(partner.tier).color}`}>
+                                      {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
                                     </Badge>
                                   </div>
                                   <div>
