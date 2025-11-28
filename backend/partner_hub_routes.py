@@ -178,9 +178,13 @@ async def partner_self_register(partner_data: PartnerCreate):
             note['created_at'] = note['created_at'].isoformat()
     
     await db.partners.insert_one(doc)
-    await create_audit_log(current_user.id, "partner_self_registered", "partner", partner.id, None, doc)
+    await create_audit_log(user_id, "partner_self_registered", "partner", partner.id, None, doc)
     
-    return {"message": "Partner application submitted for review", "partner_id": partner.id}
+    return {
+        "message": "Partner application submitted for review. You will be notified via email once approved.", 
+        "partner_id": partner.id,
+        "user_id": user_id
+    }
 
 @partner_router.post("/create")
 async def create_partner_by_manager(partner_data: PartnerCreate, current_user: User = Depends(get_current_user)):
