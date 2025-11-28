@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
-import { Products } from './pages/Products';
+import ProductsNew from './pages/ProductsNew';
 import { PlanDesigner } from './pages/PlanDesigner';
 import { ApprovalCenter } from './pages/ApprovalCenter';
 import { Analytics } from './pages/Analytics';
