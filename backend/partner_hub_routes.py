@@ -669,26 +669,27 @@ async def reject_l2(partner_id: str, rejection_data: dict, current_user: User = 
 @partner_router.post("/{partner_id}/resubmit")
 async def resubmit_partner(partner_id: str, update_data: dict, current_user: User = Depends(get_current_user)):
     """
-    Resubmit rejected partner after making corrections
+    Resubmit partner after making corrections
     - Admin/PM can resubmit partners they created
-    - Partners can resubmit their own applications
+    - Partners can resubmit their own applications (rejected or on-hold)
     - Resets approval workflow and sends to L1 again
     """
     partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
-    # Check status - only rejected partners can be resubmitted
-    if partner['status'] not in ['rejected_by_l1', 'rejected_by_l2']:
-        raise HTTPException(status_code=400, detail="Only rejected partners can be resubmitted")
+    # Check status - rejected or on-hold partners can be resubmitted
+    if partner['status'] not in ['rejected_by_l1', 'rejected_by_l2', 'on_hold', 'more_info_needed']:
+        raise HTTPException(status_code=400, detail="Only rejected or on-hold partners can be resubmitted")
     
     # Check permissions
     created_by = partner.get('created_by')
     created_by_role = partner.get('created_by_role')
+    user_id = partner.get('user_id')
     
-    if created_by_role == 'partner':
+    if created_by_role == 'partner' or user_id:
         # Partner resubmitting their own application
-        if current_user.role != 'partner' or current_user.id != created_by:
+        if current_user.role != 'partner' or (current_user.id != created_by and current_user.id != user_id):
             raise HTTPException(status_code=403, detail="You can only resubmit your own application")
     else:
         # Admin/PM resubmitting
@@ -725,13 +726,18 @@ async def resubmit_partner(partner_id: str, update_data: dict, current_user: Use
         if key in update_data:
             resubmit_data[key] = update_data[key]
     
-    # Clear rejection data but keep history
+    # Clear rejection/hold data but keep history
     resubmit_data['previous_rejection_reason'] = partner.get('rejection_reason')
     resubmit_data['previous_rejected_level'] = partner.get('rejected_level')
+    resubmit_data['previous_hold_reason'] = partner.get('hold_reason')
     resubmit_data['rejection_reason'] = None
     resubmit_data['rejected_by'] = None
     resubmit_data['rejected_at'] = None
     resubmit_data['rejected_level'] = None
+    resubmit_data['on_hold'] = False
+    resubmit_data['hold_reason'] = None
+    resubmit_data['partner_feedback_required'] = False
+    resubmit_data['partner_feedback_message'] = None
     
     # For documents, convert to proper format if needed
     if 'documents' in resubmit_data:
