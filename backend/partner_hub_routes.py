@@ -142,20 +142,28 @@ async def partner_self_register(partner_data: PartnerCreate):
     
     await db.users.insert_one(user_doc)
     
-    # Calculate initial progress based on documents
-    initial_progress = 10
-    if partner_data.documents and len(partner_data.documents) >= 2:
-        initial_progress = 25
+    # Initialize approval workflow
+    approval_workflow = [
+        PartnerApprovalStep(level=1, status="pending").model_dump(),
+        PartnerApprovalStep(level=2, status="pending").model_dump()
+    ]
     
-    # Create partner without tier
+    # Calculate initial progress based on documents
+    initial_progress = 20
+    if partner_data.documents and len(partner_data.documents) >= 2:
+        initial_progress = 30
+    
+    # Create partner without tier - same structure as admin creation
     partner = Partner(
         **partner_data.model_dump(exclude={'tier', 'password'}),
-        tier=None,
-        status="pending_review",
+        tier=None,  # Tier will be assigned by L1 approver
+        status="pending_l1",  # Goes directly to L1 approval queue
         created_by=user_id,
         created_by_role="partner",
         user_id=user_id,
-        onboarding_progress=initial_progress
+        approval_workflow=approval_workflow,
+        onboarding_progress=initial_progress,
+        submitted_at=datetime.now(timezone.utc)
     )
     
     doc = partner.model_dump()
