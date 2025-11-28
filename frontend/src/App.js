@@ -12,6 +12,7 @@ import { Tickets } from './pages/Tickets';
 import UserManagement from './pages/UserManagement';
 import Partners from './pages/Partners';
 import SpiffCenterNew from './pages/SpiffCenterNew';
+import SalesManagement from './pages/SalesManagement';
 import AccessControl from './pages/AccessControl';
 import PartnerAuth from './pages/PartnerAuth';
 import { Button } from './components/ui/button';
