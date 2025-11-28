@@ -1,0 +1,23 @@
+[
+  {
+    "test": "ADMIN Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-11-28T12:00:32.130259"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T12:00:32.395125"
+  },
+  {
+    "test": "L2 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l2: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T12:00:32.672991"
+  }
+]
