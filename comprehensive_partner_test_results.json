@@ -1,0 +1,226 @@
+[
+  {
+    "test": "ADMIN Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:19.896560"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:20.164928"
+  },
+  {
+    "test": "L2 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l2: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:20.432209"
+  },
+  {
+    "test": "ADMIN Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:20.701037"
+  },
+  {
+    "test": "Partner Creation",
+    "success": true,
+    "message": "Partner created successfully",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:20.751475"
+  },
+  {
+    "test": "Partner Status",
+    "success": true,
+    "message": "Partner status is pending_l1",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:20.799918"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:21.064164"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:21.330562"
+  },
+  {
+    "test": "L1 Approval",
+    "success": false,
+    "message": "L1 approval error: 'l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:21.331260"
+  },
+  {
+    "test": "L2 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l2: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:21.632612"
+  },
+  {
+    "test": "L2 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l2: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:21.895517"
+  },
+  {
+    "test": "Document Visibility",
+    "success": false,
+    "message": "Document visibility error: 'l2'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:21.896239"
+  },
+  {
+    "test": "L2 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l2: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:22.156394"
+  },
+  {
+    "test": "L2 Approval",
+    "success": false,
+    "message": "L2 approval error: 'l2'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.157142"
+  },
+  {
+    "test": "Directory Verification",
+    "success": false,
+    "message": "Approved partner not found in directory or missing expected attributes",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.205151"
+  },
+  {
+    "test": "Spiff Partner Availability",
+    "success": true,
+    "message": "TechCorp partner is available for Spiff assignment (approved status)",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.255997"
+  },
+  {
+    "test": "Spiff Filtering",
+    "success": true,
+    "message": "Pending Partner Corp has status 'pending_l1' - correctly filtered from Spiff eligibility",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.352336"
+  },
+  {
+    "test": "OnHold Partner Creation",
+    "success": true,
+    "message": "OnHold test partner created",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.397500"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:22.657175"
+  },
+  {
+    "test": "Put On Hold",
+    "success": false,
+    "message": "Put on hold error: 'l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.658014"
+  },
+  {
+    "test": "OnHold Queue",
+    "success": false,
+    "message": "Partner not found in on-hold queue",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.697991"
+  },
+  {
+    "test": "Resubmit",
+    "success": false,
+    "message": "Failed to resubmit partner: 400",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.734798"
+  },
+  {
+    "test": "Rejection Partner Creation",
+    "success": true,
+    "message": "Rejection test partner created",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:22.774118"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:23.037836"
+  },
+  {
+    "test": "L1 Rejection",
+    "success": false,
+    "message": "L1 rejection error: 'l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.038536"
+  },
+  {
+    "test": "Rejected Queue",
+    "success": false,
+    "message": "Partner not found in rejected queue",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.077899"
+  },
+  {
+    "test": "Rejected Resubmit",
+    "success": false,
+    "message": "Failed to resubmit rejected partner: 400",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.117555"
+  },
+  {
+    "test": "Tier Test Partner Creation",
+    "success": true,
+    "message": "Tier test partner created",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.162377"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:23.421141"
+  },
+  {
+    "test": "Tier Enforcement",
+    "success": false,
+    "message": "Tier enforcement error: 'l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.421853"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed to authenticate l1: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-11-28T11:53:23.682462"
+  },
+  {
+    "test": "Document Storage",
+    "success": false,
+    "message": "Document storage error: 'l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:53:23.683292"
+  }
+]
