@@ -19,9 +19,9 @@ import {
 function PartnerHubComplete() {
   const { user, token } = useAuth();
   const [partners, setPartners] = useState([]);
-  const [pendingReview, setPendingReview] = useState([]);
   const [l1Queue, setL1Queue] = useState([]);
   const [l2Queue, setL2Queue] = useState([]);
+  const [rejected, setRejected] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [loading, setLoading] = useState(false);
