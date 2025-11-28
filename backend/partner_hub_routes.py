@@ -127,7 +127,7 @@ async def partner_self_register(partner_data: PartnerCreate):
         raise HTTPException(status_code=400, detail="Password is required for self-registration")
     
     # Create user account for the partner
-    user_id = str(uuid.uuid4())
+    user_id = str(uuid4())
     hashed_password = hash_password(partner_data.password)
     
     user_doc = {
