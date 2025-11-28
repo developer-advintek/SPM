@@ -366,6 +366,13 @@ function PartnerHubComplete() {
   // ============= L1 APPROVAL =============
 
   const handleApproveL1 = async (partnerId) => {
+    // Check if tier is selected
+    const tier = selectedTierForApproval[partnerId];
+    if (!tier) {
+      alert('Please select a partner tier before approving!');
+      return;
+    }
+
     const comments = prompt('Enter approval comments (optional):');
     setLoading(true);
     try {
@@ -375,12 +382,21 @@ function PartnerHubComplete() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ comments: comments || '' })
+        body: JSON.stringify({ tier, comments: comments || '' })
       });
 
       if (response.ok) {
         alert('Level 1 approval completed!');
+        // Clear the tier selection for this partner
+        setSelectedTierForApproval(prev => {
+          const updated = { ...prev };
+          delete updated[partnerId];
+          return updated;
+        });
         fetchAllData();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to approve at L1');
       }
     } catch (error) {
       console.error('Error approving L1:', error);
