@@ -731,19 +731,19 @@ function PartnerHubComplete() {
             <TabsTrigger value="onboarding" className="data-[state=active]:bg-blue-600">
               {isPartner() ? 'Register' : 'Create Partner'}
             </TabsTrigger>
-            {canManagePartners() && (
-              <TabsTrigger value="review" className="data-[state=active]:bg-blue-600">
-                Review ({stats.pendingReview})
-              </TabsTrigger>
-            )}
             {canApproveL1() && (
-              <TabsTrigger value="l1" className="data-[state=active]:bg-blue-600">
+              <TabsTrigger value="l1" className="data-[state=active]:bg-orange-600">
                 L1 Queue ({stats.l1Queue})
               </TabsTrigger>
             )}
             {canApproveL2() && (
-              <TabsTrigger value="l2" className="data-[state=active]:bg-blue-600">
+              <TabsTrigger value="l2" className="data-[state=active]:bg-purple-600">
                 L2 Queue ({stats.l2Queue})
+              </TabsTrigger>
+            )}
+            {(canManagePartners() || isPartner()) && (
+              <TabsTrigger value="rejected" className="data-[state=active]:bg-red-600">
+                Rejected ({stats.rejected})
               </TabsTrigger>
             )}
           </TabsList>
