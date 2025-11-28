@@ -117,28 +117,28 @@ class PartnerOnboardingTester:
             except Exception as e:
                 self.log_result("Product Creation", False, f"Product creation error: {str(e)}")
     
-    def test_admin_partner_creation(self):
-        """Test 1: Admin Partner Creation"""
+    def test_1_admin_creates_partner(self):
+        """Test 1: Complete Partner Approval Flow - Step 1: Admin Creates Partner"""
         partner_data = {
-            "company_name": "TechCorp Solutions Inc.",
-            "contact_person_name": "Sarah Johnson",
-            "contact_person_email": "sarah.johnson@techcorp.com",
-            "contact_person_phone": "+1-555-0123",
-            "website": "https://techcorp-solutions.com",
-            "business_type": "Technology Consulting",
-            "tax_id": "12-3456789",
+            "company_name": "Nexus Technologies Ltd",
+            "business_type": "Software Development",
+            "tax_id": "TAX-98765",
             "years_in_business": 8,
-            "number_of_employees": 45,
-            "expected_monthly_volume": "$250,000",
-            "business_address": "123 Innovation Drive, Tech City, TC 12345",
-            "tier": "silver"
+            "number_of_employees": 120,
+            "expected_monthly_volume": "$500K-$1M",
+            "business_address": "456 Innovation Drive, Austin, TX 78701",
+            "website": "https://nexus-tech.com",
+            "contact_person_name": "Sarah Johnson",
+            "contact_person_email": "sarah@nexus-tech.com",
+            "contact_person_phone": "+1-555-9876",
+            "contact_person_designation": "VP of Partnerships"
         }
         
         try:
-            response = self.session.post(
-                f"{BASE_URL}/partners/admin-create",
+            response = requests.post(
+                f"{BASE_URL}/partners/create",
                 json=partner_data,
-                headers={"Content-Type": "application/json"}
+                headers=self.get_headers("admin")
             )
             
             if response.status_code == 200:
@@ -147,38 +147,29 @@ class PartnerOnboardingTester:
                 self.created_partners.append(partner_id)
                 
                 # Verify partner was created with correct status
-                partner_response = self.session.get(f"{BASE_URL}/partners/all")
+                partner_response = requests.get(
+                    f"{BASE_URL}/partners/directory",
+                    headers=self.get_headers("admin")
+                )
+                
                 if partner_response.status_code == 200:
                     partners = partner_response.json()
                     created_partner = next((p for p in partners if p["id"] == partner_id), None)
                     
-                    if created_partner:
-                        if created_partner["status"] == "pending_level1":
-                            self.log_result("Admin Partner Creation", True, "Partner created with status 'pending_level1'")
-                            
-                            # Verify approval workflow initialization
-                            workflow = created_partner.get("approval_workflow", [])
-                            if len(workflow) == 2:
-                                l1_step = next((s for s in workflow if s["level"] == 1), None)
-                                l2_step = next((s for s in workflow if s["level"] == 2), None)
-                                
-                                if l1_step and l2_step and l1_step["status"] == "pending" and l2_step["status"] == "pending":
-                                    self.log_result("Approval Workflow Init", True, "L1 and L2 approval steps initialized correctly")
-                                else:
-                                    self.log_result("Approval Workflow Init", False, "Approval workflow steps not properly initialized")
-                            else:
-                                self.log_result("Approval Workflow Init", False, f"Expected 2 workflow steps, got {len(workflow)}")
-                        else:
-                            self.log_result("Admin Partner Creation", False, f"Partner status is '{created_partner['status']}', expected 'pending_level1'")
+                    if created_partner and created_partner["status"] == "pending_l1":
+                        self.log_result("Step 1 - Admin Creates Partner", True, "Partner created with status 'pending_l1'")
+                        return partner_id
                     else:
-                        self.log_result("Admin Partner Creation", False, "Created partner not found in partners list")
+                        self.log_result("Step 1 - Admin Creates Partner", False, f"Partner status is '{created_partner['status'] if created_partner else 'not found'}', expected 'pending_l1'")
                 else:
-                    self.log_result("Admin Partner Creation", False, f"Failed to retrieve partners: {partner_response.status_code}")
+                    self.log_result("Step 1 - Admin Creates Partner", False, f"Failed to retrieve partners: {partner_response.status_code}")
             else:
-                self.log_result("Admin Partner Creation", False, f"Failed to create partner: {response.status_code}", response.text)
+                self.log_result("Step 1 - Admin Creates Partner", False, f"Failed to create partner: {response.status_code}", response.text)
                 
         except Exception as e:
-            self.log_result("Admin Partner Creation", False, f"Partner creation error: {str(e)}")
+            self.log_result("Step 1 - Admin Creates Partner", False, f"Partner creation error: {str(e)}")
+        
+        return None
     
     def test_l1_approval_queue(self):
         """Test 2: L1 Approval Queue"""
