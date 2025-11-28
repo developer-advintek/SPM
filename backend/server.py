@@ -270,42 +270,19 @@ async def bulk_upload_products(file: UploadFile = File(...), current_user: User 
     
     return {"products_created": products_created, "errors": errors}
 
-# ============= TRANSACTION ENDPOINTS =============
+# ============= OLD TRANSACTION ENDPOINTS (REPLACED BY /api/sales) =============
+# These have been replaced by the new sales_commission_routes.py
+# Kept here commented for reference only
 
-@api_router.post("/transactions", response_model=Transaction)
-async def create_transaction(txn_data: TransactionCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
-    txn_data_dict = txn_data.model_dump()
-    txn_data_dict['total_amount'] = validate_financial_precision(txn_data.unit_price * txn_data.quantity)
-    
-    transaction = Transaction(**txn_data_dict)
-    doc = transaction.model_dump()
-    doc['transaction_date'] = doc['transaction_date'].isoformat()
-    doc['created_at'] = doc['created_at'].isoformat()
-    for key in ['unit_price', 'total_amount']:
-        doc[key] = str(doc[key])
-    
-    await db.transactions.insert_one(doc)
-    await process_transaction_commission(transaction.id)
-    await manager.broadcast({"type": "transaction_created", "transaction_id": transaction.id})
-    
-    return transaction
+# @api_router.post("/transactions", response_model=Transaction)
+# async def create_transaction(txn_data: TransactionCreate, current_user: User = Depends(require_role(["admin", "manager"]))):
+#     # DEPRECATED - Use POST /api/sales instead
+#     pass
 
-@api_router.get("/transactions", response_model=List[Transaction])
-async def list_transactions(current_user: User = Depends(get_current_user), limit: int = 100):
-    query = {}
-    if current_user.role == "partner" or current_user.role == "rep":
-        query["sales_rep_id"] = current_user.id
-    
-    transactions = await db.transactions.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
-    for t in transactions:
-        for key in ['transaction_date', 'created_at']:
-            if key in t and isinstance(t[key], str):
-                t[key] = datetime.fromisoformat(t[key])
-        if 'processed_at' in t and t['processed_at'] and isinstance(t['processed_at'], str):
-            t['processed_at'] = datetime.fromisoformat(t['processed_at'])
-        for key in ['unit_price', 'total_amount']:
-            t[key] = Decimal(t[key])
-    return transactions
+# @api_router.get("/transactions", response_model=List[Transaction])
+# async def list_transactions(current_user: User = Depends(get_current_user), limit: int = 100):
+#     # DEPRECATED - Use GET /api/sales instead
+#     pass
 
 # ============= COMMISSION CALCULATION & EARNINGS =============
 
