@@ -811,6 +811,11 @@ function PartnerHubComplete() {
                 Rejected ({stats.rejected})
               </TabsTrigger>
             )}
+            {(canManagePartners() || canApproveL1() || canApproveL2() || isPartner()) && (
+              <TabsTrigger value="onhold" className="data-[state=active]:bg-purple-600">
+                On Hold ({stats.onHold})
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Partner Directory Tab */}
