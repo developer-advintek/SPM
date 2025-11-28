@@ -1089,10 +1089,10 @@ function PartnerHubComplete() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-            )}
+            </TabsContent>
+          )}
 
-            {/* OLD REVIEW TAB - COMMENTED OUT
+          {/* OLD REVIEW TAB - COMMENTED OUT
             <TabsContent value="review" className="mt-6">
               <Card className="bg-white/10 backdrop-blur-lg border-white/20">
                 <CardHeader>
