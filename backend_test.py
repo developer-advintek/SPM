@@ -883,56 +883,76 @@ class PartnerOnboardingTester:
             self.log_result("Partner Deactivation", False, f"Partner deactivation error: {str(e)}")
     
     def run_all_tests(self):
-        """Run all Partner Hub tests"""
-        print("🚀 Starting Partner Hub Backend API Tests")
+        """Run COMPLETE PARTNER ONBOARDING E2E TEST - RETRY"""
+        print("🚀 COMPLETE PARTNER ONBOARDING E2E TEST - RETRY")
+        print("=" * 60)
+        print("Testing complete partner approval workflow:")
+        print("Admin creates → L1 approves with tier → L2 approves")
+        print("Verifying partner only appears in other modules after L2 approval")
         print("=" * 60)
         
-        # Step 1: Authenticate
-        if not self.authenticate():
-            print("❌ Authentication failed. Cannot proceed with tests.")
-            return
-        
-        # Step 2: Create test products
-        self.create_test_products()
-        
-        # Step 3: Run the complete test flow
-        print("\n📋 Running Partner Hub Test Flow:")
+        # Step 1: Authenticate all users
+        print("\n🔐 Authenticating Test Users:")
         print("-" * 40)
         
-        self.test_admin_partner_creation()
-        self.test_l1_approval_queue()
-        self.test_l1_approval_workflow()
-        self.test_l2_approval_queue()
-        self.test_l2_approval_workflow()
-        self.test_product_assignment()
-        self.test_partner_portal()
-        self.test_rejection_workflow()
-        self.test_document_upload()
+        admin_token = self.authenticate_user("admin")
+        l1_token = self.authenticate_user("l1")
+        l2_token = self.authenticate_user("l2")
         
-        # Additional Partner Hub tests
-        print("\n📋 Running Additional Partner Hub Tests:")
+        if not all([admin_token, l1_token, l2_token]):
+            print("❌ Authentication failed for one or more users. Cannot proceed.")
+            return self.test_results
+        
+        # Step 2: Run the complete E2E test flow
+        print("\n📋 CRITICAL TEST FLOW:")
         print("-" * 40)
-        self.test_partner_self_registration()
-        self.test_pending_partners_queue()
-        self.test_request_more_info()
-        self.test_partner_deactivation()
+        
+        # Test 1: Complete Partner Approval Flow
+        print("\n### Test 1: Complete Partner Approval Flow")
+        partner_id = self.test_1_admin_creates_partner()
+        
+        if partner_id:
+            l1_success = self.test_2_l1_gets_queue_and_approves(partner_id)
+            if l1_success:
+                l2_success = self.test_3_l2_gets_queue_and_approves(partner_id)
+                if l2_success:
+                    self.test_4_verify_partner_in_directory(partner_id)
+        
+        # Test 2: On-Hold Workflow End-to-End
+        print("\n### Test 2: On-Hold Workflow End-to-End")
+        self.test_5_on_hold_workflow()
+        
+        # Test 3: Tier Assignment Enforcement
+        print("\n### Test 3: Tier Assignment Enforcement")
+        self.test_6_tier_assignment_enforcement()
+        
+        # Test 4: Rejection & Resubmission
+        print("\n### Test 4: Rejection & Resubmission")
+        self.test_7_rejection_and_resubmission()
         
         # Summary
-        print("\n📊 Test Summary:")
+        print("\n📊 VALIDATION CHECKLIST:")
         print("=" * 60)
         
         passed = sum(1 for r in self.test_results if r["success"])
         failed = len(self.test_results) - passed
         
         print(f"Total Tests: {len(self.test_results)}")
-        print(f"Passed: {passed}")
-        print(f"Failed: {failed}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
         
         if failed > 0:
-            print("\n❌ Failed Tests:")
+            print("\n❌ FAILED TESTS:")
             for result in self.test_results:
                 if not result["success"]:
                     print(f"  - {result['test']}: {result['message']}")
+                    if result.get('details'):
+                        print(f"    Details: {result['details']}")
+        
+        print("\n✅ SUCCESSFUL TESTS:")
+        for result in self.test_results:
+            if result["success"]:
+                print(f"  - {result['test']}: {result['message']}")
         
         return self.test_results
 
