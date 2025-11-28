@@ -1933,10 +1933,12 @@ async def get_available_permissions(current_user: User = Depends(require_role(["
 from partner_hub_routes import partner_router
 from product_routes import product_router
 from spiff_routes import spiff_router
+from sales_commission_routes import sales_router
 
 app.include_router(partner_router)
 app.include_router(product_router, prefix="/api")
 app.include_router(spiff_router, prefix="/api")
+app.include_router(sales_router, prefix="/api")
 
 # Include the main routers
 app.include_router(api_router)
