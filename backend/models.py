@@ -183,6 +183,9 @@ class PartnerCreate(BaseModel):
     
     # Tier (only for admin/partner_manager, not for self-registration)
     tier: Optional[str] = None
+    
+    # Password (only for self-registration, not used when admin creates partner)
+    password: Optional[str] = None
 
 class Partner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
