@@ -1166,8 +1166,7 @@ function PartnerHubComplete() {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
-          END OF OLD REVIEW TAB */}
+            </TabsContent> */}
 
           {/* L1 Queue Tab */}
           {canApproveL1() && (
