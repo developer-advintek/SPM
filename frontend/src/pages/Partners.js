@@ -1207,7 +1207,7 @@ function PartnerHubComplete() {
                 <CardHeader>
                   <CardTitle className="text-white">Level 1 Approval Queue</CardTitle>
                   <CardDescription className="text-slate-300">
-                    Review and approve partner applications
+                    Review partner applications - MUST assign tier before approval
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1221,46 +1221,97 @@ function PartnerHubComplete() {
                       {l1Queue.map(partner => (
                         <Card key={partner.id} className="bg-white/5 border-white/10">
                           <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h3 className="text-xl font-semibold text-white mb-3">{partner.company_name}</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                  <div>
-                                    <p className="text-xs text-slate-400">Contact</p>
-                                    <p className="text-white">{partner.contact_person_name}</p>
+                            <div className="space-y-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h3 className="text-xl font-semibold text-white mb-3">{partner.company_name}</h3>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                    <div>
+                                      <p className="text-xs text-slate-400">Contact</p>
+                                      <p className="text-white">{partner.contact_person_name}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Email</p>
+                                      <p className="text-white text-sm">{partner.contact_person_email}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Business Type</p>
+                                      <p className="text-white">{partner.business_type || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Documents</p>
+                                      <p className="text-white">{partner.documents?.length || 0} files</p>
+                                      {partner.documents?.length > 0 && (
+                                        <Button
+                                          onClick={() => fetchPartnerDetails(partner.id)}
+                                          size="sm"
+                                          variant="link"
+                                          className="text-blue-400 p-0 h-auto mt-1"
+                                        >
+                                          View Documents
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="text-xs text-slate-400">Email</p>
-                                    <p className="text-white text-sm">{partner.contact_person_email}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-slate-400">Tier</p>
-                                    <Badge className={`${getTierInfo(partner.tier).color}`}>
-                                      {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
-                                    </Badge>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-slate-400">Documents</p>
-                                    <p className="text-white">{partner.documents?.length || 0} files</p>
+
+                                  {/* TIER SELECTION - REQUIRED FOR L1 APPROVAL */}
+                                  <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                                    <Label className="text-yellow-300 mb-2 block">
+                                      ⚠️ Assign Partner Tier (Required)
+                                    </Label>
+                                    <Select
+                                      value={selectedTierForApproval[partner.id] || partner.tier || ''}
+                                      onValueChange={(value) => {
+                                        setSelectedTierForApproval(prev => ({
+                                          ...prev,
+                                          [partner.id]: value
+                                        }));
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                                        <SelectValue placeholder="Select Tier *" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-slate-800 border-slate-600">
+                                        <SelectItem value="bronze" className="text-white">🥉 Bronze Tier</SelectItem>
+                                        <SelectItem value="silver" className="text-white">🥈 Silver Tier</SelectItem>
+                                        <SelectItem value="gold" className="text-white">🥇 Gold Tier</SelectItem>
+                                        <SelectItem value="platinum" className="text-white">💎 Platinum Tier</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    {selectedTierForApproval[partner.id] && (
+                                      <p className="text-green-400 text-sm mt-2">
+                                        ✓ Tier selected: {selectedTierForApproval[partner.id]}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex gap-2 ml-4">
+                              
+                              <div className="flex gap-2 justify-end">
                                 <Button
                                   onClick={() => fetchPartnerDetails(partner.id)}
                                   size="sm"
                                   className="bg-blue-600 hover:bg-blue-700"
                                 >
-                                  <Eye className="h-4 w-4" />
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View Full Details
+                                </Button>
+                                <Button
+                                  onClick={() => handlePutOnHold(partner.id)}
+                                  size="sm"
+                                  className="bg-purple-600 hover:bg-purple-700"
+                                >
+                                  <Pause className="h-4 w-4 mr-1" />
+                                  Put On Hold
                                 </Button>
                                 <Button
                                   onClick={() => handleApproveL1(partner.id)}
                                   className="bg-green-600 hover:bg-green-700"
                                   size="sm"
-                                  disabled={loading}
+                                  disabled={loading || !selectedTierForApproval[partner.id]}
                                 >
                                   <CheckCircle className="h-4 w-4 mr-1" />
-                                  Approve
+                                  Approve & Send to L2
                                 </Button>
                                 <Button
                                   onClick={() => handleRejectL1(partner.id)}
