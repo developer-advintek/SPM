@@ -389,7 +389,7 @@ async def get_l1_queue(current_user: User = Depends(get_current_user)):
 async def approve_l1(partner_id: str, approval_data: dict, current_user: User = Depends(get_current_user)):
     """
     L1 approver approves partner and sends to L2
-    Can assign tier if not already assigned
+    MUST assign tier during L1 approval if not already assigned
     Required: tier must be assigned before approval
     """
     if not can_approve_l1(current_user):
@@ -402,10 +402,10 @@ async def approve_l1(partner_id: str, approval_data: dict, current_user: User = 
     if partner['status'] != 'pending_l1':
         raise HTTPException(status_code=400, detail="Partner is not in L1 approval queue")
     
-    # L1 can assign tier if not already assigned
-    tier = approval_data.get('tier') or partner.get('tier')
+    # L1 MUST assign tier during approval - tier is required in approval_data
+    tier = approval_data.get('tier')
     if not tier:
-        raise HTTPException(status_code=400, detail="Tier must be assigned before L1 approval")
+        raise HTTPException(status_code=400, detail="Tier must be assigned during L1 approval")
     
     approval_workflow = partner.get('approval_workflow', [])
     
@@ -422,6 +422,7 @@ async def approve_l1(partner_id: str, approval_data: dict, current_user: User = 
     update_data = {
         "status": "pending_l2",
         "tier": tier,
+        "tier_assigned_by": current_user.id,
         "approval_workflow": approval_workflow,
         "l1_approved_by": current_user.id,
         "l1_approved_at": datetime.now(timezone.utc).isoformat(),
