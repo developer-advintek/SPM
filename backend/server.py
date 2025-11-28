@@ -336,47 +336,24 @@ async def get_my_earnings(current_user: User = Depends(get_current_user)):
     total_earnings = sum(Decimal(c['final_amount']) for c in calculations)
     return {"total_earnings": str(total_earnings), "calculations": calculations}
 
-# ============= COMMISSION PLAN ENDPOINTS =============
+# ============= OLD COMMISSION PLAN ENDPOINTS (DEPRECATED) =============
+# Commission planning is now done through tier-based commissions + spiff campaigns
+# Old complex rule-based system has been replaced
 
-@api_router.post("/plans", response_model=CommissionPlan)
-async def create_commission_plan(plan_data: CommissionPlanCreate, current_user: User = Depends(require_role(["admin", "finance"]))):
-    validation = validate_commission_plan_logic(plan_data.rules)
-    if not validation['valid']:
-        raise HTTPException(status_code=400, detail=validation.get('error', 'Invalid plan logic'))
-    
-    plan = CommissionPlan(**plan_data.model_dump(), created_by=current_user.id)
-    doc = plan.model_dump()
-    doc['effective_start'] = doc['effective_start'].isoformat()
-    if doc['effective_end']:
-        doc['effective_end'] = doc['effective_end'].isoformat()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['updated_at'] = doc['updated_at'].isoformat()
-    
-    await db.commission_plans.insert_one(doc)
-    await create_audit_log(current_user.id, "plan_created", "commission_plan", plan.id, None, doc)
-    return plan
+# @api_router.post("/plans", response_model=CommissionPlan)
+# async def create_commission_plan(...):
+#     # DEPRECATED - Commission structure is now tier-based
+#     pass
 
-@api_router.get("/plans", response_model=List[CommissionPlan])
-async def list_commission_plans(current_user: User = Depends(require_role(["admin", "finance", "manager"]))):
-    plans = await db.commission_plans.find({}, {"_id": 0}).to_list(100)
-    for p in plans:
-        p['effective_start'] = datetime.fromisoformat(p['effective_start'])
-        if p.get('effective_end'):
-            p['effective_end'] = datetime.fromisoformat(p['effective_end'])
-        p['created_at'] = datetime.fromisoformat(p['created_at'])
-        p['updated_at'] = datetime.fromisoformat(p['updated_at'])
-    return plans
+# @api_router.get("/plans", response_model=List[CommissionPlan])
+# async def list_commission_plans(...):
+#     # DEPRECATED
+#     pass
 
-@api_router.patch("/plans/{plan_id}")
-async def update_plan(plan_id: str, update_data: dict, current_user: User = Depends(require_role(["admin", "finance"]))):
-    plan = await db.plans.find_one({"id": plan_id}, {"_id": 0})
-    if not plan:
-        raise HTTPException(status_code=404, detail="Plan not found")
-    
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    await db.commission_plans.update_one({"id": plan_id}, {"$set": update_data})
-    await create_audit_log(current_user.id, "plan_updated", "commission_plan", plan_id, plan, update_data)
-    return {"message": "Plan updated successfully"}
+# @api_router.patch("/plans/{plan_id}")
+# async def update_plan(...):
+#     # DEPRECATED
+#     pass
 
 # ============= CREDIT ASSIGNMENT ENDPOINTS =============
 
