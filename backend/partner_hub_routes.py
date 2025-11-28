@@ -404,6 +404,31 @@ async def send_to_l1_approval(partner_id: str, current_user: User = Depends(get_
     
     return {"message": "Partner sent to L1 approval queue"}
 
+@partner_router.get("/rejected")
+async def get_rejected_partners(current_user: User = Depends(get_current_user)):
+    """
+    Get rejected partners
+    - For admin/PM: Show all rejected partners
+    - For partners: Show only their own rejected application
+    """
+    query = {"status": {"$in": ["rejected_by_l1", "rejected_by_l2"]}}
+    
+    # If partner user, only show their own
+    if current_user.role == "partner":
+        query["created_by"] = current_user.id
+    
+    partners = await db.partners.find(query, {"_id": 0}).sort("rejected_at", -1).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at', 'rejected_at']:
+            if key in p and p[key] and isinstance(p[key], str):
+                try:
+                    p[key] = datetime.fromisoformat(p[key])
+                except:
+                    pass
+    
+    return partners
+
 @partner_router.get("/l1-queue")
 async def get_l1_queue(current_user: User = Depends(get_current_user)):
     """Get L1 approval queue (for L1 approvers)"""
