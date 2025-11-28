@@ -44,30 +44,39 @@ class PartnerOnboardingTester:
         if details and not success:
             print(f"   Details: {details}")
     
-    def authenticate(self):
-        """Authenticate and get access token"""
+    def authenticate_user(self, user_type):
+        """Authenticate specific user type and store token"""
         try:
-            response = self.session.post(
+            credentials = TEST_CREDENTIALS[user_type]
+            response = requests.post(
                 f"{BASE_URL}/auth/login",
-                json=TEST_CREDENTIALS,
+                json=credentials,
                 headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
                 data = response.json()
-                self.auth_token = data.get("access_token")
-                self.session.headers.update({
-                    "Authorization": f"Bearer {self.auth_token}"
-                })
-                self.log_result("Authentication", True, "Successfully authenticated as admin")
-                return True
+                token = data.get("access_token")
+                self.tokens[user_type] = token
+                self.log_result(f"{user_type.upper()} Authentication", True, f"Successfully authenticated as {user_type}")
+                return token
             else:
-                self.log_result("Authentication", False, f"Failed to authenticate: {response.status_code}", response.text)
-                return False
+                self.log_result(f"{user_type.upper()} Authentication", False, f"Failed to authenticate {user_type}: {response.status_code}", response.text)
+                return None
                 
         except Exception as e:
-            self.log_result("Authentication", False, f"Authentication error: {str(e)}")
-            return False
+            self.log_result(f"{user_type.upper()} Authentication", False, f"{user_type} authentication error: {str(e)}")
+            return None
+    
+    def get_headers(self, user_type):
+        """Get headers with authorization for specific user"""
+        token = self.tokens.get(user_type)
+        if not token:
+            return {"Content-Type": "application/json"}
+        return {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
     
     def create_test_products(self):
         """Create test products for assignment"""
