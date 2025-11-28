@@ -22,10 +22,12 @@ function PartnerHubComplete() {
   const [l1Queue, setL1Queue] = useState([]);
   const [l2Queue, setL2Queue] = useState([]);
   const [rejected, setRejected] = useState([]);
+  const [onHold, setOnHold] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('directory');
+  const [selectedTierForApproval, setSelectedTierForApproval] = useState({});
   
   // Form states
   const [onboardingForm, setOnboardingForm] = useState({
