@@ -998,13 +998,11 @@ function PartnerHubComplete() {
             </Card>
           </TabsContent>
 
-          {/* Pending Review Tab (Admin/PM only) */}
-          {canManagePartners() && (
-            {/* REMOVED: Review tab - partners now go directly to L1 queue */}
+          {/* REMOVED: Review tab - partners now go directly to L1 queue */}
             
-            {/* Rejected Tab */}
-            {(canManagePartners() || isPartner()) && (
-              <TabsContent value="rejected" className="mt-6">
+          {/* Rejected Tab */}
+          {(canManagePartners() || isPartner()) && (
+            <TabsContent value="rejected" className="mt-6">
                 <Card className="bg-white/10 backdrop-blur-lg border-white/20">
                   <CardHeader>
                     <CardTitle className="text-white">Rejected Partners</CardTitle>
