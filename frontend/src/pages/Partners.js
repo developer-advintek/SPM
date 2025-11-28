@@ -1312,17 +1312,41 @@ function PartnerHubComplete() {
                             <div className="flex flex-col gap-2">
                               <Button
                                 onClick={() => {
-                                  // Open document in new tab
-                                  const base64Data = doc.document_data;
-                                  const byteCharacters = atob(base64Data);
-                                  const byteNumbers = new Array(byteCharacters.length);
-                                  for (let i = 0; i < byteCharacters.length; i++) {
-                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  try {
+                                    // Open document in new tab
+                                    const base64Data = doc.document_data;
+                                    
+                                    // Determine MIME type from file extension
+                                    const extension = doc.document_name.split('.').pop().toLowerCase();
+                                    let mimeType = 'application/octet-stream';
+                                    
+                                    if (['pdf'].includes(extension)) {
+                                      mimeType = 'application/pdf';
+                                    } else if (['jpg', 'jpeg'].includes(extension)) {
+                                      mimeType = 'image/jpeg';
+                                    } else if (['png'].includes(extension)) {
+                                      mimeType = 'image/png';
+                                    } else if (['gif'].includes(extension)) {
+                                      mimeType = 'image/gif';
+                                    } else if (['webp'].includes(extension)) {
+                                      mimeType = 'image/webp';
+                                    } else if (['doc', 'docx'].includes(extension)) {
+                                      mimeType = 'application/msword';
+                                    }
+                                    
+                                    const byteCharacters = atob(base64Data);
+                                    const byteNumbers = new Array(byteCharacters.length);
+                                    for (let i = 0; i < byteCharacters.length; i++) {
+                                      byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                    }
+                                    const byteArray = new Uint8Array(byteNumbers);
+                                    const blob = new Blob([byteArray], { type: mimeType });
+                                    const url = URL.createObjectURL(blob);
+                                    window.open(url, '_blank');
+                                  } catch (error) {
+                                    console.error('Error viewing document:', error);
+                                    alert('Failed to open document. Please try downloading instead.');
                                   }
-                                  const byteArray = new Uint8Array(byteNumbers);
-                                  const blob = new Blob([byteArray], { type: 'application/pdf' });
-                                  const url = URL.createObjectURL(blob);
-                                  window.open(url, '_blank');
                                 }}
                                 size="sm"
                                 className="bg-blue-600 hover:bg-blue-700 text-xs"
@@ -1332,21 +1356,26 @@ function PartnerHubComplete() {
                               </Button>
                               <Button
                                 onClick={() => {
-                                  // Download document
-                                  const base64Data = doc.document_data;
-                                  const byteCharacters = atob(base64Data);
-                                  const byteNumbers = new Array(byteCharacters.length);
-                                  for (let i = 0; i < byteCharacters.length; i++) {
-                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  try {
+                                    // Download document
+                                    const base64Data = doc.document_data;
+                                    const byteCharacters = atob(base64Data);
+                                    const byteNumbers = new Array(byteCharacters.length);
+                                    for (let i = 0; i < byteCharacters.length; i++) {
+                                      byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                    }
+                                    const byteArray = new Uint8Array(byteNumbers);
+                                    const blob = new Blob([byteArray]);
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = doc.document_name;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                  } catch (error) {
+                                    console.error('Error downloading document:', error);
+                                    alert('Failed to download document.');
                                   }
-                                  const byteArray = new Uint8Array(byteNumbers);
-                                  const blob = new Blob([byteArray]);
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = doc.document_name;
-                                  a.click();
-                                  URL.revokeObjectURL(url);
                                 }}
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-xs"
