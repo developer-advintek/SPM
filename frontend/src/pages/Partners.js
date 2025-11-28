@@ -97,9 +97,9 @@ function PartnerHubComplete() {
   const fetchAllData = async () => {
     await Promise.all([
       fetchPartners(),
-      fetchPendingReview(),
       fetchL1Queue(),
       fetchL2Queue(),
+      fetchRejected(),
       fetchProducts()
     ]);
   };
