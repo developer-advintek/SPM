@@ -29,17 +29,23 @@ class User(UserBase):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class TierCommission(BaseModel):
+    bronze: Decimal = Decimal("0")
+    silver: Decimal = Decimal("0")
+    gold: Decimal = Decimal("0")
+    platinum: Decimal = Decimal("0")
+
 class ProductCreate(BaseModel):
     sku: str
     name: str
     category: str
-    commission_rate_code: str
-    gross_margin_percent: Decimal
-    base_commission_rate: Decimal
+    description: Optional[str] = None
+    base_price: Decimal
+    tier_commissions: TierCommission  # Commission rates per partner tier
 
 class Product(ProductCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    eligible: bool = True
+    active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
