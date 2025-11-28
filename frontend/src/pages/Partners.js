@@ -729,7 +729,8 @@ function PartnerHubComplete() {
     approved: partners.filter(p => p.status === 'approved').length,
     l1Queue: l1Queue.length,
     l2Queue: l2Queue.length,
-    rejected: rejected.length
+    rejected: rejected.length,
+    onHold: onHold.length
   };
 
   return (
