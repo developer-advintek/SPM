@@ -612,13 +612,24 @@ async def approve_l2(partner_id: str, approval_data: dict, current_user: User = 
 
 @partner_router.post("/{partner_id}/l2-reject")
 async def reject_l2(partner_id: str, rejection_data: dict, current_user: User = Depends(get_current_user)):
-    """L2 approver rejects partner (goes back to admin/pm)"""
+    """
+    L2 approver rejects partner
+    - If created by admin → Status: rejected_by_l2 (admin must fix and resubmit)
+    - If self-registered → Status: rejected_by_l2 (partner can see reason and resubmit)
+    """
     if not can_approve_l2(current_user):
         raise HTTPException(status_code=403, detail="Access denied")
     
     partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
+    
+    if partner['status'] != 'pending_l2':
+        raise HTTPException(status_code=400, detail="Partner is not in L2 approval queue")
+    
+    reason = rejection_data.get('reason', '')
+    if not reason:
+        raise HTTPException(status_code=400, detail="Rejection reason is required")
     
     approval_workflow = partner.get('approval_workflow', [])
     
@@ -629,25 +640,40 @@ async def reject_l2(partner_id: str, rejection_data: dict, current_user: User = 
             step['approver_id'] = current_user.id
             step['approver_name'] = current_user.full_name
             step['action_date'] = datetime.now(timezone.utc).isoformat()
-            step['rejection_reason'] = rejection_data.get('reason', '')
+            step['rejection_reason'] = reason
             step['comments'] = rejection_data.get('comments', '')
             break
     
     rejection_count = partner.get('rejection_count', 0) + 1
+    created_by_role = partner.get('created_by_role', 'admin')
     
     update_data = {
-        "status": "on_hold",  # Goes to admin/pm for decision
+        "status": "rejected_by_l2",
+        "rejection_reason": reason,
+        "rejected_by": current_user.id,
+        "rejected_by_name": current_user.full_name,
+        "rejected_at": datetime.now(timezone.utc).isoformat(),
+        "rejected_level": "L2",
         "approval_workflow": approval_workflow,
         "rejection_count": rejection_count,
-        "on_hold": True,
-        "hold_reason": f"Rejected by L2: {rejection_data.get('reason', '')}",
+        "onboarding_progress": 50,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    # If partner self-registered, keep user account but inactive
+    if created_by_role == "partner" and partner.get('user_id'):
+        await db.users.update_one(
+            {"id": partner['user_id']},
+            {"$set": {"active": False}}
+        )
     
     await db.partners.update_one({"id": partner_id}, {"$set": update_data})
     await create_audit_log(current_user.id, "partner_l2_rejected", "partner", partner_id, partner, update_data)
     
-    return {"message": "Partner rejected at L2. Sent back to admin/partner manager."}
+    return {
+        "message": f"Partner rejected at L2. Sent back to {created_by_role} for revision.",
+        "created_by_role": created_by_role
+    }
 
 # ============= ADMIN/PM ACTIONS ON REJECTED/HOLD =============
 
