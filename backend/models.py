@@ -71,33 +71,20 @@ class SaleTransaction(SaleTransactionCreate):
     approved_at: Optional[datetime] = None
     paid_at: Optional[datetime] = None
 
-class CommissionCalculation(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    transaction_id: str
-    sales_rep_id: str
-    plan_id: str
-    base_amount: Decimal
-    commission_amount: Decimal
-    adjustments: Decimal = Decimal("0")
-    final_amount: Decimal
-    holdback_amount: Decimal = Decimal("0")
-    calculation_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    status: str = "calculated"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class PayoutBatchCreate(BaseModel):
+    payout_period: str  # "2025-11-01" or "2025-11-W1" or "2025-11-25"
+    payout_frequency: str  # "daily", "weekly", "monthly"
+    partner_ids: List[str]  # Partners included in this batch
 
-class CommissionPlanCreate(BaseModel):
-    name: str
-    plan_type: str
-    rules: Dict[str, Any]
-    effective_start: datetime
-    effective_end: Optional[datetime] = None
-
-class CommissionPlan(CommissionPlanCreate):
+class PayoutBatch(PayoutBatchCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    status: str = "draft"
+    total_amount: Decimal = Decimal("0")
+    transaction_count: int = 0
+    status: str = "pending"  # pending, processing, completed, failed
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    processed_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
 class CreditAssignmentCreate(BaseModel):
     transaction_id: str
