@@ -958,14 +958,14 @@ class PartnerOnboardingTester:
 
 def main():
     """Main test execution"""
-    tester = PartnerHubTester()
+    tester = PartnerOnboardingTester()
     results = tester.run_all_tests()
     
     # Save results to file
-    with open("/app/partner_hub_test_results.json", "w") as f:
+    with open("/app/partner_onboarding_e2e_results.json", "w") as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n💾 Test results saved to: /app/partner_hub_test_results.json")
+    print(f"\n💾 Test results saved to: /app/partner_onboarding_e2e_results.json")
 
 if __name__ == "__main__":
     main()
