@@ -333,33 +333,14 @@ async def upload_document(partner_id: str, doc_data: dict, current_user: User = 
 
 # ============= WORKFLOW MANAGEMENT =============
 
-@partner_router.post("/{partner_id}/send-to-l1")
-async def send_to_l1_approval(partner_id: str, current_user: User = Depends(get_current_user)):
-    """Admin/PM sends partner to L1 approval queue"""
-    if not can_manage_partners(current_user):
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    
-    if partner['status'] not in ['draft', 'more_info_needed', 'on_hold']:
-        raise HTTPException(status_code=400, detail="Partner cannot be sent to L1 from current status")
-    
-    if not partner.get('tier'):
-        raise HTTPException(status_code=400, detail="Partner tier must be assigned before sending to L1")
-    
-    update_data = {
-        "status": "pending_l1",
-        "submitted_at": datetime.now(timezone.utc).isoformat(),
-        "onboarding_progress": 35,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.partners.update_one({"id": partner_id}, {"$set": update_data})
-    await create_audit_log(current_user.id, "partner_sent_to_l1", "partner", partner_id, partner, update_data)
-    
-    return {"message": "Partner sent to L1 approval queue"}
+# ============= OLD SEND-TO-L1 ENDPOINT (DEPRECATED - NOT USED IN NEW FLOW) =============
+# Partners now go directly to L1 queue upon creation/self-registration
+# No manual "send to L1" step needed
+
+# @partner_router.post("/{partner_id}/send-to-l1")
+# async def send_to_l1_approval(...):
+#     # DEPRECATED - Partners created with status pending_l1 directly
+#     pass
 
 @partner_router.get("/rejected")
 async def get_rejected_partners(current_user: User = Depends(get_current_user)):
