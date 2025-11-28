@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import uuid
 
 # Configuration
-BASE_URL = "https://partnermgmt.preview.emergentagent.com/api"
+BASE_URL = "https://partnerpro-2.preview.emergentagent.com/api"
 
 # Admin credentials that work
 ADMIN_CREDENTIALS = {
