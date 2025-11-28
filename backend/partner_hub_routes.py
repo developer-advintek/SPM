@@ -675,6 +675,91 @@ async def reject_l2(partner_id: str, rejection_data: dict, current_user: User = 
         "created_by_role": created_by_role
     }
 
+# ============= RESUBMISSION FOR REJECTED PARTNERS =============
+
+@partner_router.post("/{partner_id}/resubmit")
+async def resubmit_partner(partner_id: str, update_data: dict, current_user: User = Depends(get_current_user)):
+    """
+    Resubmit rejected partner after making corrections
+    - Admin/PM can resubmit partners they created
+    - Partners can resubmit their own applications
+    - Resets approval workflow and sends to L1 again
+    """
+    partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Check status - only rejected partners can be resubmitted
+    if partner['status'] not in ['rejected_by_l1', 'rejected_by_l2']:
+        raise HTTPException(status_code=400, detail="Only rejected partners can be resubmitted")
+    
+    # Check permissions
+    created_by = partner.get('created_by')
+    created_by_role = partner.get('created_by_role')
+    
+    if created_by_role == 'partner':
+        # Partner resubmitting their own application
+        if current_user.role != 'partner' or current_user.id != created_by:
+            raise HTTPException(status_code=403, detail="You can only resubmit your own application")
+    else:
+        # Admin/PM resubmitting
+        if not can_manage_partners(current_user):
+            raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Reset approval workflow
+    approval_workflow = [
+        PartnerApprovalStep(level=1, status="pending").model_dump(),
+        PartnerApprovalStep(level=2, status="pending").model_dump()
+    ]
+    
+    # Build resubmission data
+    resubmit_data = {
+        "status": "pending_l1",
+        "approval_workflow": approval_workflow,
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "resubmitted_at": datetime.now(timezone.utc).isoformat(),
+        "resubmission_count": partner.get('resubmission_count', 0) + 1,
+        "onboarding_progress": 35,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Allow updating partner details during resubmission
+    allowed_updates = [
+        'company_name', 'business_type', 'tax_id', 'years_in_business',
+        'number_of_employees', 'expected_monthly_volume', 'business_address',
+        'website', 'contact_person_name', 'contact_person_email',
+        'contact_person_phone', 'contact_person_designation', 'documents',
+        'tier'
+    ]
+    
+    for key in allowed_updates:
+        if key in update_data:
+            resubmit_data[key] = update_data[key]
+    
+    # Clear rejection data but keep history
+    resubmit_data['previous_rejection_reason'] = partner.get('rejection_reason')
+    resubmit_data['previous_rejected_level'] = partner.get('rejected_level')
+    resubmit_data['rejection_reason'] = None
+    resubmit_data['rejected_by'] = None
+    resubmit_data['rejected_at'] = None
+    resubmit_data['rejected_level'] = None
+    
+    # For documents, convert to proper format if needed
+    if 'documents' in resubmit_data:
+        docs = []
+        for doc in resubmit_data['documents']:
+            if isinstance(doc, dict):
+                docs.append(doc)
+        resubmit_data['documents'] = docs
+    
+    await db.partners.update_one({"id": partner_id}, {"$set": resubmit_data})
+    await create_audit_log(current_user.id, "partner_resubmitted", "partner", partner_id, partner, resubmit_data)
+    
+    return {
+        "message": "Partner resubmitted successfully. Sent to L1 approval queue.",
+        "status": "pending_l1"
+    }
+
 # ============= ADMIN/PM ACTIONS ON REJECTED/HOLD =============
 
 @partner_router.post("/{partner_id}/put-on-hold")
