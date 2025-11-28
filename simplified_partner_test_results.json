@@ -1,0 +1,128 @@
+[
+  {
+    "test": "Admin Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.374287"
+  },
+  {
+    "test": "Partner Creation",
+    "success": true,
+    "message": "Partner created successfully with /partners/create endpoint",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.419113"
+  },
+  {
+    "test": "Partner Status",
+    "success": true,
+    "message": "Partner status is 'pending_l1' as expected",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.437875"
+  },
+  {
+    "test": "Document Storage",
+    "success": true,
+    "message": "Partner has 2 documents stored",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.437909"
+  },
+  {
+    "test": "L1 Queue",
+    "success": true,
+    "message": "Partner appears in L1 queue (9 total partners)",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.453680"
+  },
+  {
+    "test": "L1 Approval",
+    "success": true,
+    "message": "L1 approval completed with tier assignment",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.471440"
+  },
+  {
+    "test": "L1 Approval Status",
+    "success": true,
+    "message": "Partner moved to L2 queue with tier 'gold'",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.492845"
+  },
+  {
+    "test": "L2 Queue",
+    "success": true,
+    "message": "Partner appears in L2 queue (1 total partners)",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.503041"
+  },
+  {
+    "test": "L2 Approval",
+    "success": true,
+    "message": "L2 final approval completed",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.516872"
+  },
+  {
+    "test": "Final Approval Status",
+    "success": true,
+    "message": "Partner status = 'approved', onboarding_progress = 100%",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.535527"
+  },
+  {
+    "test": "Tier Enforcement",
+    "success": true,
+    "message": "L1 approval correctly rejected without tier assignment",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.597755"
+  },
+  {
+    "test": "L1 Rejection",
+    "success": true,
+    "message": "Partner rejected by L1",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.620787"
+  },
+  {
+    "test": "Rejection Status",
+    "success": true,
+    "message": "Partner status = 'rejected_by_l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.639879"
+  },
+  {
+    "test": "Resubmission",
+    "success": true,
+    "message": "Rejected partner resubmitted successfully",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.651659"
+  },
+  {
+    "test": "Resubmission Status",
+    "success": true,
+    "message": "Status back to 'pending_l1'",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.668832"
+  },
+  {
+    "test": "Put On Hold",
+    "success": true,
+    "message": "Partner successfully put on hold",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.740025"
+  },
+  {
+    "test": "OnHold Queue",
+    "success": true,
+    "message": "Partner appears in on-hold queue",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.753616"
+  },
+  {
+    "test": "Document Visibility",
+    "success": true,
+    "message": "Partner portal shows 2 documents including business_license and tax_document",
+    "details": null,
+    "timestamp": "2025-11-28T11:55:01.765447"
+  }
+]
