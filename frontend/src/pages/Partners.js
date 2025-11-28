@@ -969,6 +969,101 @@ function PartnerHubComplete() {
 
           {/* Pending Review Tab (Admin/PM only) */}
           {canManagePartners() && (
+            {/* REMOVED: Review tab - partners now go directly to L1 queue */}
+            
+            {/* Rejected Tab */}
+            {(canManagePartners() || isPartner()) && (
+              <TabsContent value="rejected" className="mt-6">
+                <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+                  <CardHeader>
+                    <CardTitle className="text-white">Rejected Partners</CardTitle>
+                    <CardDescription className="text-slate-300">
+                      Partners rejected during L1 or L2 approval - can be resubmitted after corrections
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {rejected.length === 0 ? (
+                      <div className="text-center py-8">
+                        <CheckCircle className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                        <p className="text-slate-300">No rejected partners</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {rejected.map(partner => (
+                          <Card key={partner.id} className="bg-red-900/20 border-red-500/30">
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <h3 className="text-xl font-semibold text-white">{partner.company_name}</h3>
+                                    <Badge className="bg-red-600">
+                                      Rejected at {partner.rejected_level}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="bg-red-500/20 border border-red-500/30 rounded p-3 mb-4">
+                                    <p className="text-xs text-red-300 mb-1">Rejection Reason:</p>
+                                    <p className="text-white">{partner.rejection_reason}</p>
+                                    <p className="text-xs text-slate-400 mt-2">
+                                      Rejected by: {partner.rejected_by_name} on {new Date(partner.rejected_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                    <div>
+                                      <p className="text-xs text-slate-400">Contact</p>
+                                      <p className="text-white">{partner.contact_person_name}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Email</p>
+                                      <p className="text-white text-sm">{partner.contact_person_email}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Tier</p>
+                                      {partner.tier ? (
+                                        <Badge className={`${getTierInfo(partner.tier).color}`}>
+                                          {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
+                                        </Badge>
+                                      ) : (
+                                        <p className="text-slate-400">Not Assigned</p>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-slate-400">Rejection Count</p>
+                                      <p className="text-white">{partner.rejection_count || 1}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 mt-4">
+                                    <Button
+                                      onClick={() => fetchPartnerDetails(partner.id)}
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      View & Edit
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleResubmit(partner.id)}
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      Resubmit for Approval
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* OLD REVIEW TAB - COMMENTED OUT
             <TabsContent value="review" className="mt-6">
               <Card className="bg-white/10 backdrop-blur-lg border-white/20">
                 <CardHeader>
