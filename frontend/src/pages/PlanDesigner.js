@@ -58,8 +58,15 @@ export const PlanDesigner = () => {
     });
     setCurrentRule({
       rule_type: 'percentage',
-      condition: {},
-      action: {},
+      condition: {
+        product_ids: [],
+        min_amount: '',
+        max_amount: ''
+      },
+      action: {
+        commission_rate: '',
+        bonus_amount: ''
+      },
       priority: 0
     });
   };
