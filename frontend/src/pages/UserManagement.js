@@ -112,6 +112,40 @@ function UserManagement() {
       ],
       description: 'External partner with limited access',
       note: 'Partners must be registered through Partner Hub'
+    },
+    partner_manager: {
+      name: 'Partner Manager',
+      color: 'bg-teal-600',
+      icon: '🏢',
+      permissions: [
+        'manage_partners',
+        'review_applications',
+        'assign_tiers',
+        'view_partner_data'
+      ],
+      description: 'Manages partner onboarding and relationships'
+    },
+    l1_approver: {
+      name: 'L1 Approver',
+      color: 'bg-indigo-600',
+      icon: '✓',
+      permissions: [
+        'approve_l1',
+        'view_partner_data',
+        'review_documents'
+      ],
+      description: 'First level approval authority'
+    },
+    l2_approver: {
+      name: 'L2 Approver',
+      color: 'bg-pink-600',
+      icon: '✓✓',
+      permissions: [
+        'approve_l2',
+        'view_partner_data',
+        'review_documents'
+      ],
+      description: 'Second level approval authority'
     }
   };
 
