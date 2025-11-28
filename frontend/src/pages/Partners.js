@@ -67,7 +67,13 @@ function PartnerHubComplete() {
     bronze: { name: 'Bronze', icon: '🥉', color: 'bg-orange-600' },
     silver: { name: 'Silver', icon: '🥈', color: 'bg-gray-500' },
     gold: { name: 'Gold', icon: '🥇', color: 'bg-yellow-600' },
-    platinum: { name: 'Platinum', icon: '💎', color: 'bg-purple-600' }
+    platinum: { name: 'Platinum', icon: '💎', color: 'bg-purple-600' },
+    null: { name: 'Not Assigned', icon: '⏳', color: 'bg-gray-400' },
+    undefined: { name: 'Not Assigned', icon: '⏳', color: 'bg-gray-400' }
+  };
+  
+  const getTierInfo = (tier) => {
+    return TIER_INFO[tier] || TIER_INFO.null;
   };
 
   const PAYOUT_PERIODS = [
