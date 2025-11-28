@@ -629,6 +629,37 @@ function PartnerHubComplete() {
     }
   };
 
+  const handleResubmit = async (partnerId) => {
+    if (!window.confirm('Resubmit this partner for approval? Make sure you have made necessary corrections.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}/resubmit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({})
+      });
+
+      if (response.ok) {
+        alert('Partner resubmitted successfully! Sent to L1 approval queue.');
+        await fetchAllData();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to resubmit partner');
+      }
+    } catch (error) {
+      console.error('Error resubmitting:', error);
+      alert('Error resubmitting partner');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ============= PORTAL =============
 
   const fetchPartnerDetails = async (partnerId) => {
