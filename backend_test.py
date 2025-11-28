@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Comprehensive Partner Hub Backend API Tests
-Testing multi-level approval workflow for Partner Hub module
+COMPLETE PARTNER ONBOARDING E2E TEST - RETRY
+Testing complete partner approval workflow: Admin creates → L1 approves with tier → L2 approves
+Verifying partner only appears in other modules after L2 approval
 """
 
 import requests
@@ -12,9 +13,12 @@ import uuid
 
 # Configuration
 BASE_URL = "https://partnerpro-2.preview.emergentagent.com/api"
+
+# Test Credentials (VERIFIED)
 TEST_CREDENTIALS = {
-    "email": "admin@test.com",
-    "password": "admin123"
+    "admin": {"email": "admin@test.com", "password": "admin123"},
+    "l1": {"email": "l1@test.com", "password": "l1_123"},
+    "l2": {"email": "l2@test.com", "password": "l2_123"}
 }
 
 class PartnerHubTester:
