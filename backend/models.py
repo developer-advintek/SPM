@@ -105,17 +105,19 @@ class SpiffCreate(BaseModel):
     description: Optional[str] = None
     start_date: datetime
     end_date: datetime
-    target_products: List[str] = []
-    target_segments: List[str] = []
+    target_products: List[str] = []  # Product IDs
+    assignment_type: str = "tier"  # "tier" or "individual"
+    target_tiers: List[str] = []  # ["bronze", "silver", "gold", "platinum"] when assignment_type is "tier"
+    target_partners: List[str] = []  # Partner IDs when assignment_type is "individual"
     incentive_amount: Decimal
-    incentive_type: str = "fixed"
-    eligibility_criteria: Dict[str, Any] = {}
+    incentive_type: str = "fixed"  # "fixed" or "percentage"
 
 class Spiff(SpiffCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    status: str = "draft"
+    status: str = "active"  # "active", "inactive", "expired"
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Enhanced Partner Model with Documents and Approvals
 class PartnerDocument(BaseModel):
