@@ -424,7 +424,11 @@ async def get_l1_queue(current_user: User = Depends(get_current_user)):
 
 @partner_router.post("/{partner_id}/l1-approve")
 async def approve_l1(partner_id: str, approval_data: dict, current_user: User = Depends(get_current_user)):
-    """L1 approver approves partner"""
+    """
+    L1 approver approves partner and sends to L2
+    Can assign tier if not already assigned
+    Required: tier must be assigned before approval
+    """
     if not can_approve_l1(current_user):
         raise HTTPException(status_code=403, detail="Access denied")
     
