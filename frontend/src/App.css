@@ -454,11 +454,62 @@ form label + textarea {
   margin-top: 0.5rem;
 }
 
-/* Select dropdown styling */
+/* Select dropdown styling - FIXED FOR VISIBILITY */
 select option {
   background: #1e293b;
   color: #f1f5f9;
   padding: 8px;
+}
+
+/* Shadcn Select Component - Dark Theme Override */
+[data-radix-select-viewport],
+[class*="SelectContent"],
+[role="listbox"] {
+  background: rgba(30, 41, 59, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 20px 60px 0 rgba(0, 0, 0, 0.5) !important;
+  padding: 4px !important;
+}
+
+[data-radix-select-item],
+[class*="SelectItem"],
+[role="option"] {
+  background: transparent !important;
+  color: #f1f5f9 !important;
+  padding: 10px 12px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-radix-select-item]:hover,
+[class*="SelectItem"]:hover,
+[role="option"]:hover {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #ffffff !important;
+}
+
+[data-radix-select-item][data-highlighted],
+[class*="SelectItem"][data-highlighted],
+[role="option"][aria-selected="true"] {
+  background: rgba(99, 102, 241, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+[data-radix-select-trigger],
+[class*="SelectTrigger"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-radix-select-trigger]:hover,
+[class*="SelectTrigger"]:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
 }
 
 /* Description text */
