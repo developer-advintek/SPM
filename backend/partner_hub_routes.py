@@ -439,6 +439,11 @@ async def approve_l1(partner_id: str, approval_data: dict, current_user: User = 
     if partner['status'] != 'pending_l1':
         raise HTTPException(status_code=400, detail="Partner is not in L1 approval queue")
     
+    # L1 can assign tier if not already assigned
+    tier = approval_data.get('tier') or partner.get('tier')
+    if not tier:
+        raise HTTPException(status_code=400, detail="Tier must be assigned before L1 approval")
+    
     approval_workflow = partner.get('approval_workflow', [])
     
     # Update L1 step
@@ -453,16 +458,24 @@ async def approve_l1(partner_id: str, approval_data: dict, current_user: User = 
     
     update_data = {
         "status": "pending_l2",
+        "tier": tier,
         "approval_workflow": approval_workflow,
+        "l1_approved_by": current_user.id,
         "l1_approved_at": datetime.now(timezone.utc).isoformat(),
-        "onboarding_progress": 55,
+        "onboarding_progress": 60,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    # Clear any previous rejection data
+    update_data["rejection_reason"] = None
+    update_data["rejected_by"] = None
+    update_data["rejected_at"] = None
+    update_data["rejected_level"] = None
     
     await db.partners.update_one({"id": partner_id}, {"$set": update_data})
     await create_audit_log(current_user.id, "partner_l1_approved", "partner", partner_id, partner, update_data)
     
-    return {"message": "L1 approval completed. Partner moved to L2 queue."}
+    return {"message": "L1 approval completed. Partner moved to L2 queue.", "tier": tier}
 
 @partner_router.post("/{partner_id}/l1-reject")
 async def reject_l1(partner_id: str, rejection_data: dict, current_user: User = Depends(get_current_user)):
