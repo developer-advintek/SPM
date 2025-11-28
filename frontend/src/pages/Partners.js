@@ -1434,6 +1434,105 @@ function PartnerHubComplete() {
               </Card>
             </TabsContent>
           )}
+          {/* On Hold Tab */}
+          {(canManagePartners() || canApproveL1() || canApproveL2() || isPartner()) && (
+            <TabsContent value="onhold" className="mt-6">
+              <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Partners On Hold</CardTitle>
+                  <CardDescription className="text-slate-300">
+                    Applications put on hold - require corrections before proceeding
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {onHold.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CheckCircle className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                      <p className="text-slate-300">No partners on hold</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {onHold.map(partner => (
+                        <Card key={partner.id} className="bg-purple-900/20 border-purple-500/30">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <h3 className="text-xl font-semibold text-white">{partner.company_name}</h3>
+                                  <Badge className="bg-purple-600">
+                                    On Hold
+                                  </Badge>
+                                  {partner.tier && (
+                                    <Badge className={`${getTierInfo(partner.tier).color}`}>
+                                      {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <div className="bg-purple-500/20 border border-purple-500/30 rounded p-3 mb-4">
+                                  <p className="text-xs text-purple-300 mb-1">📌 Reason for Hold:</p>
+                                  <p className="text-white font-medium">{partner.hold_reason}</p>
+                                  {partner.partner_feedback_message && (
+                                    <div className="mt-2">
+                                      <p className="text-xs text-purple-300 mb-1">💬 Feedback Message:</p>
+                                      <p className="text-slate-200">{partner.partner_feedback_message}</p>
+                                    </div>
+                                  )}
+                                  <p className="text-xs text-slate-400 mt-2">
+                                    Held by: {partner.hold_initiated_by_name} on {new Date(partner.hold_date).toLocaleDateString()}
+                                  </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                  <div>
+                                    <p className="text-xs text-slate-400">Contact</p>
+                                    <p className="text-white">{partner.contact_person_name}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-400">Email</p>
+                                    <p className="text-white text-sm">{partner.contact_person_email}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-400">Documents</p>
+                                    <p className="text-white">{partner.documents?.length || 0} files</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-400">Previous Status</p>
+                                    <p className="text-white">{partner.previous_status_before_hold || 'N/A'}</p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 mt-4">
+                                  <Button
+                                    onClick={() => fetchPartnerDetails(partner.id)}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View & Edit
+                                  </Button>
+                                  {(isPartner() || canManagePartners()) && (
+                                    <Button
+                                      onClick={() => handleResubmit(partner.id)}
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      <RefreshCw className="h-4 w-4 mr-1" />
+                                      Update & Resubmit
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Partner Detail Modal - Full Screen */}
