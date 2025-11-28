@@ -118,18 +118,17 @@ function PartnerHubComplete() {
     }
   };
 
-  const fetchPendingReview = async () => {
-    if (!canManagePartners()) return;
+  const fetchRejected = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/partners/pending-review`, {
+      const response = await fetch(`${BACKEND_URL}/api/partners/rejected`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setPendingReview(data);
+        setRejected(data);
       }
     } catch (error) {
-      console.error('Error fetching pending review:', error);
+      console.error('Error fetching rejected partners:', error);
     }
   };
 
