@@ -1394,9 +1394,9 @@ function PartnerHubComplete() {
                       <p className="text-slate-400">No documents uploaded</p>
                     </div>
                   )}
-                  </div>
+                </div>
                   
-                  {/* Upload Document */}
+                {/* Upload Document */}
                   {(canManagePartners() || selectedPartner.user_id === user?.id) && (
                     <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
                       <h4 className="text-white font-medium mb-3">Upload New Document</h4>
