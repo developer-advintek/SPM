@@ -13,6 +13,7 @@ import UserManagement from './pages/UserManagement';
 import Partners from './pages/Partners';
 import SpiffCenter from './pages/SpiffCenter';
 import AccessControl from './pages/AccessControl';
+import PartnerAuth from './pages/PartnerAuth';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
