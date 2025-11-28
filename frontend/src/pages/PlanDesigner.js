@@ -179,11 +179,12 @@ export const PlanDesigner = () => {
                         <input
                           type="checkbox"
                           id={`product-${product.id}`}
-                          checked={currentRule.condition.product_ids.includes(product.id)}
+                          checked={currentRule.condition?.product_ids?.includes(product.id) || false}
                           onChange={(e) => {
+                            const currentProductIds = currentRule.condition?.product_ids || [];
                             const newProductIds = e.target.checked
-                              ? [...currentRule.condition.product_ids, product.id]
-                              : currentRule.condition.product_ids.filter(id => id !== product.id);
+                              ? [...currentProductIds, product.id]
+                              : currentProductIds.filter(id => id !== product.id);
                             setCurrentRule({
                               ...currentRule,
                               condition: { ...currentRule.condition, product_ids: newProductIds }
