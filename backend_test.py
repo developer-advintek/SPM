@@ -294,28 +294,34 @@ class PartnerOnboardingTester:
         
         return False
     
-    def test_l2_approval_queue(self):
-        """Test 4: L2 Approval Queue"""
+    def test_4_verify_partner_in_directory(self, partner_id):
+        """Test 4: Step 4 - Verify Partner in Directory"""
+        if not partner_id:
+            self.log_result("Step 4 - Verify Directory", False, "No partner ID available")
+            return False
+            
         try:
-            response = self.session.get(f"{BASE_URL}/partners/l2-queue")
+            response = requests.get(
+                f"{BASE_URL}/partners/directory",
+                headers=self.get_headers("admin")
+            )
             
             if response.status_code == 200:
-                l2_queue = response.json()
+                partners = response.json()
+                partner = next((p for p in partners if p["id"] == partner_id), None)
                 
-                # Check if our partner moved to L2 queue
-                if self.created_partners:
-                    partner_in_queue = any(p["id"] in self.created_partners for p in l2_queue)
-                    if partner_in_queue:
-                        self.log_result("L2 Approval Queue", True, f"Partner successfully moved to L2 queue ({len(l2_queue)} partners)")
-                    else:
-                        self.log_result("L2 Approval Queue", False, "Test partner not found in L2 queue")
+                if partner and partner["status"] == "approved" and partner.get("tier") == "gold":
+                    self.log_result("Step 4 - Verify Directory", True, f"Partner shows in directory with status 'approved', tier 'gold'")
+                    return True
                 else:
-                    self.log_result("L2 Approval Queue", True, f"L2 queue retrieved with {len(l2_queue)} partners")
+                    self.log_result("Step 4 - Verify Directory", False, f"Partner not found or incorrect status/tier in directory")
             else:
-                self.log_result("L2 Approval Queue", False, f"Failed to get L2 queue: {response.status_code}", response.text)
+                self.log_result("Step 4 - Verify Directory", False, f"Failed to get directory: {response.status_code}", response.text)
                 
         except Exception as e:
-            self.log_result("L2 Approval Queue", False, f"L2 queue error: {str(e)}")
+            self.log_result("Step 4 - Verify Directory", False, f"Directory verification error: {str(e)}")
+        
+        return False
     
     def test_l2_approval_workflow(self):
         """Test 5: L2 Approval Workflow"""
