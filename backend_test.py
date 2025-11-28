@@ -233,51 +233,66 @@ class PartnerOnboardingTester:
         
         return False
     
-    def test_l1_approval_workflow(self):
-        """Test 3: L1 Approval Workflow"""
-        if not self.created_partners:
-            self.log_result("L1 Approval", False, "No test partner available for L1 approval")
-            return
+    def test_3_l2_gets_queue_and_approves(self, partner_id):
+        """Test 3: Step 3 - L2 Gets Queue & Final Approval"""
+        if not partner_id:
+            self.log_result("Step 3 - L2 Queue & Approve", False, "No partner ID available")
+            return False
             
-        partner_id = self.created_partners[0]
-        approval_data = {
-            "comments": "Partner documentation looks good. Business model is solid and financials are acceptable."
-        }
-        
         try:
-            response = self.session.post(
-                f"{BASE_URL}/partners/{partner_id}/approve-l1",
-                json=approval_data,
-                headers={"Content-Type": "application/json"}
+            # L2 gets queue
+            response = requests.get(
+                f"{BASE_URL}/partners/l2-queue",
+                headers=self.get_headers("l2")
             )
             
             if response.status_code == 200:
-                # Verify partner status changed to pending_level2
-                partner_response = self.session.get(f"{BASE_URL}/partners/all")
-                if partner_response.status_code == 200:
-                    partners = partner_response.json()
-                    partner = next((p for p in partners if p["id"] == partner_id), None)
+                l2_queue = response.json()
+                partner_in_queue = any(p["id"] == partner_id for p in l2_queue)
+                
+                if partner_in_queue:
+                    self.log_result("Step 3a - L2 Gets Queue", True, f"Partner found in L2 queue ({len(l2_queue)} total partners)")
                     
-                    if partner and partner["status"] == "pending_level2":
-                        self.log_result("L1 Approval Status", True, "Partner status changed to 'pending_level2'")
+                    # L2 Final Approve
+                    approval_data = {
+                        "comments": "Final approval completed. Welcome aboard!"
+                    }
+                    
+                    approve_response = requests.post(
+                        f"{BASE_URL}/partners/{partner_id}/l2-approve",
+                        json=approval_data,
+                        headers=self.get_headers("l2")
+                    )
+                    
+                    if approve_response.status_code == 200:
+                        # Verify status changed to approved and onboarding_progress 100
+                        partner_response = requests.get(
+                            f"{BASE_URL}/partners/directory",
+                            headers=self.get_headers("admin")
+                        )
                         
-                        # Verify L1 step in approval_workflow is marked as approved
-                        workflow = partner.get("approval_workflow", [])
-                        l1_step = next((s for s in workflow if s["level"] == 1), None)
-                        
-                        if l1_step and l1_step["status"] == "approved":
-                            self.log_result("L1 Approval Workflow", True, "L1 step marked as 'approved' in workflow")
+                        if partner_response.status_code == 200:
+                            partners = partner_response.json()
+                            partner = next((p for p in partners if p["id"] == partner_id), None)
+                            
+                            if partner and partner["status"] == "approved" and partner.get("onboarding_progress") == 100:
+                                self.log_result("Step 3b - L2 Final Approve", True, "Partner status 'approved', onboarding_progress 100%")
+                                return True
+                            else:
+                                self.log_result("Step 3b - L2 Final Approve", False, f"Status: {partner['status'] if partner else 'not found'}, Progress: {partner.get('onboarding_progress') if partner else 'N/A'}%")
                         else:
-                            self.log_result("L1 Approval Workflow", False, "L1 step not properly marked as approved")
+                            self.log_result("Step 3b - L2 Final Approve", False, f"Failed to verify partner: {partner_response.status_code}")
                     else:
-                        self.log_result("L1 Approval Status", False, f"Partner status is '{partner['status'] if partner else 'not found'}', expected 'pending_level2'")
+                        self.log_result("Step 3b - L2 Final Approve", False, f"L2 approval failed: {approve_response.status_code}", approve_response.text)
                 else:
-                    self.log_result("L1 Approval", False, f"Failed to retrieve partner after approval: {partner_response.status_code}")
+                    self.log_result("Step 3a - L2 Gets Queue", False, "Partner not found in L2 queue")
             else:
-                self.log_result("L1 Approval", False, f"Failed to approve L1: {response.status_code}", response.text)
+                self.log_result("Step 3a - L2 Gets Queue", False, f"Failed to get L2 queue: {response.status_code}", response.text)
                 
         except Exception as e:
-            self.log_result("L1 Approval", False, f"L1 approval error: {str(e)}")
+            self.log_result("Step 3 - L2 Queue & Approve", False, f"L2 approval error: {str(e)}")
+        
+        return False
     
     def test_l2_approval_queue(self):
         """Test 4: L2 Approval Queue"""
