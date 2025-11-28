@@ -110,13 +110,36 @@ async def calculate_onboarding_progress(partner: dict) -> int:
 # ============= ONBOARDING ENDPOINTS =============
 
 @partner_router.post("/self-register")
-async def partner_self_register(partner_data: PartnerCreate, current_user: User = Depends(get_current_user)):
+async def partner_self_register(partner_data: PartnerCreate):
     """
-    Partner self-registration (no tier assignment)
-    Status: draft → Admin/PM reviews and assigns tier → pending_review
+    Partner self-registration (no authentication required)
+    Creates partner user account and partner record
+    Status: draft → Admin/PM reviews and assigns tier → pending_l1 → pending_l2 → approved
     """
-    if current_user.role != "partner":
-        raise HTTPException(status_code=403, detail="Only partners can self-register")
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": partner_data.contact_person_email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if password is provided
+    if not partner_data.password:
+        raise HTTPException(status_code=400, detail="Password is required for self-registration")
+    
+    # Create user account for the partner
+    user_id = str(uuid.uuid4())
+    hashed_password = hash_password(partner_data.password)
+    
+    user_doc = {
+        "id": user_id,
+        "email": partner_data.contact_person_email,
+        "full_name": partner_data.contact_person_name,
+        "password_hash": hashed_password,
+        "role": "partner",
+        "active": False,  # Inactive until approved
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
     
     # Calculate initial progress based on documents
     initial_progress = 10
@@ -125,12 +148,12 @@ async def partner_self_register(partner_data: PartnerCreate, current_user: User 
     
     # Create partner without tier
     partner = Partner(
-        **partner_data.model_dump(exclude={'tier'}),
+        **partner_data.model_dump(exclude={'tier', 'password'}),
         tier=None,
         status="pending_review",
-        created_by=current_user.id,
+        created_by=user_id,
         created_by_role="partner",
-        user_id=current_user.id,
+        user_id=user_id,
         onboarding_progress=initial_progress
     )
     
