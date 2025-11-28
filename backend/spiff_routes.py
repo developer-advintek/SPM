@@ -2,10 +2,11 @@
 Spiff Campaign Management Routes
 """
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List
 from datetime import datetime, timezone
 from models import Spiff, SpiffCreate, User
-from utils.security import get_current_user
+from utils.security import verify_token
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -15,6 +16,20 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 spiff_router = APIRouter()
+security = HTTPBearer()
+
+# Auth dependency
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = verify_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user = await db.users.find_one({"id": payload.get("sub")}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return User(**user)
 
 def can_manage_spiffs(user: User) -> bool:
     """Check if user can manage spiffs"""
