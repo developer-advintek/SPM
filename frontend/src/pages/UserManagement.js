@@ -488,8 +488,8 @@ function UserManagement() {
                         <TableCell className="text-white font-medium">{u.full_name}</TableCell>
                         <TableCell className="text-slate-300">{u.email}</TableCell>
                         <TableCell>
-                          <Badge className={`${ROLES[u.role].color} text-white`}>
-                            {ROLES[u.role].icon} {ROLES[u.role].name}
+                          <Badge className={`${ROLES[u.role]?.color || 'bg-gray-600'} text-white`}>
+                            {ROLES[u.role]?.icon || '👤'} {ROLES[u.role]?.name || u.role}
                           </Badge>
                         </TableCell>
                         <TableCell>
