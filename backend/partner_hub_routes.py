@@ -588,20 +588,27 @@ async def approve_l2(partner_id: str, approval_data: dict, current_user: User = 
     update_data = {
         "status": "approved",
         "approval_workflow": approval_workflow,
+        "l2_approved_by": current_user.id,
         "l2_approved_at": datetime.now(timezone.utc).isoformat(),
         "approved_at": datetime.now(timezone.utc).isoformat(),
-        "onboarding_progress": 80,
+        "onboarding_progress": 100,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    # Activate user if exists
+    # Clear any rejection data
+    update_data["rejection_reason"] = None
+    update_data["rejected_by"] = None
+    update_data["rejected_at"] = None
+    update_data["rejected_level"] = None
+    
+    # Activate user if exists (for self-registered partners)
     if partner.get('user_id'):
         await db.users.update_one({"id": partner['user_id']}, {"$set": {"active": True}})
     
     await db.partners.update_one({"id": partner_id}, {"$set": update_data})
     await create_audit_log(current_user.id, "partner_l2_approved", "partner", partner_id, partner, update_data)
     
-    return {"message": "Partner fully approved! Ready for product assignment."}
+    return {"message": "Partner fully approved! Onboarding complete. Partner can now receive sales commissions."}
 
 @partner_router.post("/{partner_id}/l2-reject")
 async def reject_l2(partner_id: str, rejection_data: dict, current_user: User = Depends(get_current_user)):
