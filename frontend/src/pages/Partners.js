@@ -1406,6 +1406,14 @@ function PartnerHubComplete() {
                                   <Eye className="h-4 w-4" />
                                 </Button>
                                 <Button
+                                  onClick={() => handlePutOnHold(partner.id)}
+                                  size="sm"
+                                  className="bg-purple-600 hover:bg-purple-700"
+                                >
+                                  <Pause className="h-4 w-4 mr-1" />
+                                  Hold
+                                </Button>
+                                <Button
                                   onClick={() => handleApproveL2(partner.id)}
                                   className="bg-green-600 hover:bg-green-700"
                                   size="sm"
