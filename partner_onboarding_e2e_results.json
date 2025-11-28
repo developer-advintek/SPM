@@ -4,20 +4,118 @@
     "success": true,
     "message": "Successfully authenticated as admin",
     "details": null,
-    "timestamp": "2025-11-28T12:00:32.130259"
+    "timestamp": "2025-11-28T12:01:26.486909"
   },
   {
     "test": "L1 Authentication",
-    "success": false,
-    "message": "Failed to authenticate l1: 401",
-    "details": "{\"detail\":\"Invalid credentials\"}",
-    "timestamp": "2025-11-28T12:00:32.395125"
+    "success": true,
+    "message": "Successfully authenticated as l1",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:26.753715"
   },
   {
     "test": "L2 Authentication",
-    "success": false,
-    "message": "Failed to authenticate l2: 401",
-    "details": "{\"detail\":\"Invalid credentials\"}",
-    "timestamp": "2025-11-28T12:00:32.672991"
+    "success": true,
+    "message": "Successfully authenticated as l2",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.022641"
+  },
+  {
+    "test": "Step 1 - Admin Creates Partner",
+    "success": true,
+    "message": "Partner created with status 'pending_l1'",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.112367"
+  },
+  {
+    "test": "Step 2a - L1 Gets Queue",
+    "success": true,
+    "message": "Partner found in L1 queue (11 total partners)",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.151685"
+  },
+  {
+    "test": "Step 2b - L1 Approve with Tier",
+    "success": true,
+    "message": "Partner status 'pending_l2', tier set to 'gold'",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.246197"
+  },
+  {
+    "test": "Step 3a - L2 Gets Queue",
+    "success": true,
+    "message": "Partner found in L2 queue (1 total partners)",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.290680"
+  },
+  {
+    "test": "Step 3b - L2 Final Approve",
+    "success": true,
+    "message": "Partner status 'approved', onboarding_progress 100%",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.378352"
+  },
+  {
+    "test": "Step 4 - Verify Directory",
+    "success": true,
+    "message": "Partner shows in directory with status 'approved', tier 'gold'",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.430834"
+  },
+  {
+    "test": "Test 5a - L1 Put On Hold",
+    "success": true,
+    "message": "Partner put on hold successfully",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.506823"
+  },
+  {
+    "test": "Test 5b - Get On-Hold Queue",
+    "success": true,
+    "message": "Partner appears in on-hold queue (3 partners)",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.541949"
+  },
+  {
+    "test": "Test 5c - Resubmit",
+    "success": true,
+    "message": "Partner status back to 'pending_l1'",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.627665"
+  },
+  {
+    "test": "Test 6a - L1 Approval Without Tier",
+    "success": true,
+    "message": "400 Bad Request - tier requirement enforced",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.706965"
+  },
+  {
+    "test": "Test 6b - L1 Approval With Tier",
+    "success": true,
+    "message": "L1 approval successful with tier",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.745321"
+  },
+  {
+    "test": "Test 7a - L1 Reject",
+    "success": true,
+    "message": "Partner rejected successfully",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.828653"
+  },
+  {
+    "test": "Test 7b - Get Rejected Partners",
+    "success": true,
+    "message": "Partner appears in rejected queue (1 partners)",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.866460"
+  },
+  {
+    "test": "Test 7c - Resubmit Rejected",
+    "success": true,
+    "message": "Rejected partner resubmitted successfully",
+    "details": null,
+    "timestamp": "2025-11-28T12:01:27.905835"
   }
 ]
