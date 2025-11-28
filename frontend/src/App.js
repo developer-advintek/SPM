@@ -187,7 +187,7 @@ const AppContent = () => {
           path="/spiff-center"
           element={
             <ProtectedRoute>
-              <SpiffCenter />
+              <SpiffCenterNew />
             </ProtectedRoute>
           }
         />
