@@ -160,8 +160,8 @@ function UserManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        // Exclude partners from user management - they're managed in Partner Hub
-        setUsers(data.filter(u => u.role !== 'partner'));
+        // Show all users including partner managers and approvers
+        setUsers(data);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
