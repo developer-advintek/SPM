@@ -49,19 +49,27 @@ class Product(ProductCreate):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class TransactionCreate(BaseModel):
-    sales_rep_id: str
+class SaleTransactionCreate(BaseModel):
+    partner_id: str
     product_id: str
     quantity: int
     unit_price: Decimal
-    transaction_date: datetime
+    sale_date: datetime
+    customer_reference: Optional[str] = None  # Optional customer ID/reference
+    notes: Optional[str] = None
 
-class Transaction(TransactionCreate):
+class SaleTransaction(SaleTransactionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     total_amount: Decimal = Decimal("0")
-    status: str = "pending"
+    commission_amount: Decimal = Decimal("0")
+    spiff_bonus: Decimal = Decimal("0")
+    total_commission: Decimal = Decimal("0")
+    commission_status: str = "pending"  # pending, approved, rejected, paid
+    created_by: str  # User who entered the sale
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    processed_at: Optional[datetime] = None
+    approved_by: Optional[str] = None
+    approved_at: Optional[datetime] = None
+    paid_at: Optional[datetime] = None
 
 class CommissionCalculation(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
