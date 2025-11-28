@@ -778,8 +778,8 @@ function PartnerHubComplete() {
                           <TableCell className="text-slate-300 text-sm">{partner.contact_person_email}</TableCell>
                           <TableCell>
                             {partner.tier ? (
-                              <Badge className={`${TIER_INFO[partner.tier].color} text-white`}>
-                                {TIER_INFO[partner.tier].icon} {TIER_INFO[partner.tier].name}
+                              <Badge className={`${getTierInfo(partner.tier).color} text-white`}>
+                                {getTierInfo(partner.tier).icon} {getTierInfo(partner.tier).name}
                               </Badge>
                             ) : (
                               <Badge className="bg-gray-500 text-white">No Tier</Badge>
