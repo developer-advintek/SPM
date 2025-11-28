@@ -1430,7 +1430,6 @@ function PartnerHubComplete() {
                       </div>
                     </div>
                   )}
-                </div>
 
                 {/* Approval Workflow */}
                 {Array.isArray(selectedPartner.approval_workflow) && selectedPartner.approval_workflow.length > 0 && (
