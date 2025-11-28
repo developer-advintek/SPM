@@ -102,6 +102,7 @@ function PartnerHubComplete() {
       fetchL1Queue(),
       fetchL2Queue(),
       fetchRejected(),
+      fetchOnHold(),
       fetchProducts()
     ]);
   };
