@@ -131,7 +131,7 @@ const AppContent = () => {
           path="/products"
           element={
             <ProtectedRoute>
-              <Products />
+              <ProductsNew />
             </ProtectedRoute>
           }
         />
