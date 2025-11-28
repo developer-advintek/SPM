@@ -353,12 +353,37 @@ async def get_rejected_partners(current_user: User = Depends(get_current_user)):
     
     # If partner user, only show their own
     if current_user.role == "partner":
-        query["created_by"] = current_user.id
+        query["user_id"] = current_user.id
     
     partners = await db.partners.find(query, {"_id": 0}).sort("rejected_at", -1).to_list(1000)
     
     for p in partners:
         for key in ['created_at', 'updated_at', 'rejected_at']:
+            if key in p and p[key] and isinstance(p[key], str):
+                try:
+                    p[key] = datetime.fromisoformat(p[key])
+                except:
+                    pass
+    
+    return partners
+
+@partner_router.get("/on-hold")
+async def get_on_hold_partners(current_user: User = Depends(get_current_user)):
+    """
+    Get partners on hold
+    - For admin/PM/Approvers: Show all on-hold partners
+    - For partners: Show only their own on-hold applications
+    """
+    query = {"status": "on_hold"}
+    
+    # If partner user, only show their own
+    if current_user.role == "partner":
+        query["user_id"] = current_user.id
+    
+    partners = await db.partners.find(query, {"_id": 0}).sort("hold_date", -1).to_list(1000)
+    
+    for p in partners:
+        for key in ['created_at', 'updated_at', 'hold_date']:
             if key in p and p[key] and isinstance(p[key], str):
                 try:
                     p[key] = datetime.fromisoformat(p[key])
