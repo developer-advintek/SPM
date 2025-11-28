@@ -21,10 +21,10 @@ TEST_CREDENTIALS = {
     "l2": {"email": "l2@test.com", "password": "l2_123"}
 }
 
-class PartnerHubTester:
+class PartnerOnboardingTester:
     def __init__(self):
         self.session = requests.Session()
-        self.auth_token = None
+        self.tokens = {}  # Store tokens for different users
         self.test_results = []
         self.created_partners = []
         self.created_products = []
