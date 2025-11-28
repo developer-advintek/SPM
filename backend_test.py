@@ -323,60 +323,223 @@ class PartnerOnboardingTester:
         
         return False
     
-    def test_l2_approval_workflow(self):
-        """Test 5: L2 Approval Workflow"""
-        if not self.created_partners:
-            self.log_result("L2 Approval", False, "No test partner available for L2 approval")
-            return
-            
-        partner_id = self.created_partners[0]
-        approval_data = {
-            "comments": "Final review completed. Partner meets all requirements for full approval."
+    def test_5_on_hold_workflow(self):
+        """Test 5: On-Hold Workflow End-to-End"""
+        # Step 1 - Create Second Partner
+        partner_data = {
+            "company_name": "OnHold Test Corp",
+            "contact_person_name": "Mike Wilson",
+            "contact_person_email": "mike@onhold.com",
+            "business_type": "Test Business"
         }
         
         try:
-            response = self.session.post(
-                f"{BASE_URL}/partners/{partner_id}/approve-l2",
-                json=approval_data,
-                headers={"Content-Type": "application/json"}
+            response = requests.post(
+                f"{BASE_URL}/partners/create",
+                json=partner_data,
+                headers=self.get_headers("admin")
             )
             
             if response.status_code == 200:
-                # Verify partner status changed to approved
-                partner_response = self.session.get(f"{BASE_URL}/partners/all")
-                if partner_response.status_code == 200:
-                    partners = partner_response.json()
-                    partner = next((p for p in partners if p["id"] == partner_id), None)
+                result = response.json()
+                partner2_id = result.get("partner_id")
+                
+                # Step 2 - L1 Puts On Hold
+                hold_data = {
+                    "reason": "Missing business license documentation",
+                    "comments": "Please provide current business license and proof of insurance"
+                }
+                
+                hold_response = requests.post(
+                    f"{BASE_URL}/partners/{partner2_id}/put-on-hold",
+                    json=hold_data,
+                    headers=self.get_headers("l1")
+                )
+                
+                if hold_response.status_code == 200:
+                    self.log_result("Test 5a - L1 Put On Hold", True, "Partner put on hold successfully")
                     
-                    if partner:
-                        if partner["status"] == "approved":
-                            self.log_result("L2 Approval Status", True, "Partner status changed to 'approved'")
+                    # Step 3 - Get On-Hold Queue
+                    queue_response = requests.get(
+                        f"{BASE_URL}/partners/on-hold",
+                        headers=self.get_headers("admin")
+                    )
+                    
+                    if queue_response.status_code == 200:
+                        on_hold_partners = queue_response.json()
+                        partner_on_hold = any(p["id"] == partner2_id for p in on_hold_partners)
+                        
+                        if partner_on_hold:
+                            self.log_result("Test 5b - Get On-Hold Queue", True, f"Partner appears in on-hold queue ({len(on_hold_partners)} partners)")
                             
-                            # Verify L2 step in approval_workflow is marked as approved
-                            workflow = partner.get("approval_workflow", [])
-                            l2_step = next((s for s in workflow if s["level"] == 2), None)
+                            # Step 4 - Resubmit After Corrections
+                            resubmit_response = requests.post(
+                                f"{BASE_URL}/partners/{partner2_id}/resubmit",
+                                json={},
+                                headers=self.get_headers("admin")
+                            )
                             
-                            if l2_step and l2_step["status"] == "approved":
-                                self.log_result("L2 Approval Workflow", True, "L2 step marked as 'approved' in workflow")
+                            if resubmit_response.status_code == 200:
+                                # Verify status back to pending_l1
+                                partner_response = requests.get(
+                                    f"{BASE_URL}/partners/directory",
+                                    headers=self.get_headers("admin")
+                                )
+                                
+                                if partner_response.status_code == 200:
+                                    partners = partner_response.json()
+                                    partner = next((p for p in partners if p["id"] == partner2_id), None)
+                                    
+                                    if partner and partner["status"] == "pending_l1":
+                                        self.log_result("Test 5c - Resubmit", True, "Partner status back to 'pending_l1'")
+                                    else:
+                                        self.log_result("Test 5c - Resubmit", False, f"Status: {partner['status'] if partner else 'not found'}")
+                                else:
+                                    self.log_result("Test 5c - Resubmit", False, f"Failed to verify resubmission: {partner_response.status_code}")
                             else:
-                                self.log_result("L2 Approval Workflow", False, "L2 step not properly marked as approved")
-                            
-                            # Verify onboarding progress reaches 90%
-                            if partner.get("onboarding_progress", 0) >= 90:
-                                self.log_result("L2 Onboarding Progress", True, f"Onboarding progress is {partner['onboarding_progress']}%")
-                            else:
-                                self.log_result("L2 Onboarding Progress", False, f"Onboarding progress is {partner.get('onboarding_progress', 0)}%, expected >= 90%")
+                                self.log_result("Test 5c - Resubmit", False, f"Resubmit failed: {resubmit_response.status_code}")
                         else:
-                            self.log_result("L2 Approval Status", False, f"Partner status is '{partner['status']}', expected 'approved'")
+                            self.log_result("Test 5b - Get On-Hold Queue", False, "Partner not found in on-hold queue")
                     else:
-                        self.log_result("L2 Approval", False, "Partner not found after L2 approval")
+                        self.log_result("Test 5b - Get On-Hold Queue", False, f"Failed to get on-hold queue: {queue_response.status_code}")
                 else:
-                    self.log_result("L2 Approval", False, f"Failed to retrieve partner after L2 approval: {partner_response.status_code}")
+                    self.log_result("Test 5a - L1 Put On Hold", False, f"Put on hold failed: {hold_response.status_code}")
             else:
-                self.log_result("L2 Approval", False, f"Failed to approve L2: {response.status_code}", response.text)
+                self.log_result("Test 5 - On-Hold Workflow", False, f"Failed to create second partner: {response.status_code}")
                 
         except Exception as e:
-            self.log_result("L2 Approval", False, f"L2 approval error: {str(e)}")
+            self.log_result("Test 5 - On-Hold Workflow", False, f"On-hold workflow error: {str(e)}")
+    
+    def test_6_tier_assignment_enforcement(self):
+        """Test 6: Tier Assignment Enforcement"""
+        # Create partner for tier testing
+        partner_data = {
+            "company_name": "TierTest Corp",
+            "contact_person_name": "Jane Doe",
+            "contact_person_email": "jane@tiertest.com",
+            "business_type": "Test Business"
+        }
+        
+        try:
+            response = requests.post(
+                f"{BASE_URL}/partners/create",
+                json=partner_data,
+                headers=self.get_headers("admin")
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                partner3_id = result.get("partner_id")
+                
+                # Step 1 - Try L1 Approval WITHOUT Tier
+                approval_data = {
+                    "comments": "Trying without tier"
+                }
+                
+                approve_response = requests.post(
+                    f"{BASE_URL}/partners/{partner3_id}/l1-approve",
+                    json=approval_data,
+                    headers=self.get_headers("l1")
+                )
+                
+                if approve_response.status_code == 400:
+                    self.log_result("Test 6a - L1 Approval Without Tier", True, "400 Bad Request - tier requirement enforced")
+                    
+                    # Step 2 - L1 Approval WITH Tier
+                    approval_data_with_tier = {
+                        "tier": "silver",
+                        "comments": "Approved with Silver tier"
+                    }
+                    
+                    approve_with_tier_response = requests.post(
+                        f"{BASE_URL}/partners/{partner3_id}/l1-approve",
+                        json=approval_data_with_tier,
+                        headers=self.get_headers("l1")
+                    )
+                    
+                    if approve_with_tier_response.status_code == 200:
+                        self.log_result("Test 6b - L1 Approval With Tier", True, "L1 approval successful with tier")
+                    else:
+                        self.log_result("Test 6b - L1 Approval With Tier", False, f"L1 approval with tier failed: {approve_with_tier_response.status_code}")
+                else:
+                    self.log_result("Test 6a - L1 Approval Without Tier", False, f"Expected 400, got {approve_response.status_code}")
+            else:
+                self.log_result("Test 6 - Tier Enforcement", False, f"Failed to create partner: {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Test 6 - Tier Enforcement", False, f"Tier enforcement error: {str(e)}")
+    
+    def test_7_rejection_and_resubmission(self):
+        """Test 7: Rejection & Resubmission"""
+        # Step 1 - Create Third Partner
+        partner_data = {
+            "company_name": "Rejection Test Corp",
+            "contact_person_name": "Bob Brown",
+            "contact_person_email": "bob@reject.com",
+            "business_type": "Test Business"
+        }
+        
+        try:
+            response = requests.post(
+                f"{BASE_URL}/partners/create",
+                json=partner_data,
+                headers=self.get_headers("admin")
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                partner4_id = result.get("partner_id")
+                
+                # Step 2 - L1 Rejects
+                rejection_data = {
+                    "reason": "Business not eligible for partnership program",
+                    "comments": "Company does not meet minimum revenue requirements"
+                }
+                
+                reject_response = requests.post(
+                    f"{BASE_URL}/partners/{partner4_id}/l1-reject",
+                    json=rejection_data,
+                    headers=self.get_headers("l1")
+                )
+                
+                if reject_response.status_code == 200:
+                    self.log_result("Test 7a - L1 Reject", True, "Partner rejected successfully")
+                    
+                    # Step 3 - Get Rejected Partners
+                    rejected_response = requests.get(
+                        f"{BASE_URL}/partners/rejected",
+                        headers=self.get_headers("admin")
+                    )
+                    
+                    if rejected_response.status_code == 200:
+                        rejected_partners = rejected_response.json()
+                        partner_rejected = any(p["id"] == partner4_id for p in rejected_partners)
+                        
+                        if partner_rejected:
+                            self.log_result("Test 7b - Get Rejected Partners", True, f"Partner appears in rejected queue ({len(rejected_partners)} partners)")
+                            
+                            # Step 4 - Resubmit
+                            resubmit_response = requests.post(
+                                f"{BASE_URL}/partners/{partner4_id}/resubmit",
+                                json={},
+                                headers=self.get_headers("admin")
+                            )
+                            
+                            if resubmit_response.status_code == 200:
+                                self.log_result("Test 7c - Resubmit Rejected", True, "Rejected partner resubmitted successfully")
+                            else:
+                                self.log_result("Test 7c - Resubmit Rejected", False, f"Resubmit failed: {resubmit_response.status_code}")
+                        else:
+                            self.log_result("Test 7b - Get Rejected Partners", False, "Partner not found in rejected queue")
+                    else:
+                        self.log_result("Test 7b - Get Rejected Partners", False, f"Failed to get rejected partners: {rejected_response.status_code}")
+                else:
+                    self.log_result("Test 7a - L1 Reject", False, f"L1 rejection failed: {reject_response.status_code}")
+            else:
+                self.log_result("Test 7 - Rejection Workflow", False, f"Failed to create partner: {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Test 7 - Rejection Workflow", False, f"Rejection workflow error: {str(e)}")
     
     def test_product_assignment(self):
         """Test 6: Product Assignment"""
