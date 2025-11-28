@@ -663,10 +663,9 @@ function PartnerHubComplete() {
   const stats = {
     total: partners.length,
     approved: partners.filter(p => p.status === 'approved').length,
-    pendingReview: pendingReview.length,
     l1Queue: l1Queue.length,
     l2Queue: l2Queue.length,
-    onHold: partners.filter(p => p.status === 'on_hold').length
+    rejected: rejected.length
   };
 
   return (
