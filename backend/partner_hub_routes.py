@@ -728,25 +728,44 @@ async def resubmit_partner(partner_id: str, update_data: dict, current_user: Use
 
 @partner_router.post("/{partner_id}/put-on-hold")
 async def put_on_hold(partner_id: str, hold_data: dict, current_user: User = Depends(get_current_user)):
-    """Admin/PM puts partner on hold"""
-    if not can_manage_partners(current_user):
+    """
+    Admin/PM/Approver puts partner on hold with comments
+    Partner can see the reason and update their application
+    """
+    # Allow admin, partner_manager, l1_approver, l2_approver to put on hold
+    if not (can_manage_partners(current_user) or can_approve_l1(current_user) or can_approve_l2(current_user)):
         raise HTTPException(status_code=403, detail="Access denied")
     
     partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
+    reason = hold_data.get('reason', '')
+    comments = hold_data.get('comments', '')
+    
+    if not reason:
+        raise HTTPException(status_code=400, detail="Reason for hold is required")
+    
+    # Store previous status to return to after hold is resolved
+    previous_status = partner.get('status')
+    
     update_data = {
         "status": "on_hold",
         "on_hold": True,
-        "hold_reason": hold_data.get('reason', ''),
+        "hold_reason": reason,
+        "partner_feedback_required": True,
+        "partner_feedback_message": comments or reason,
+        "previous_status_before_hold": previous_status,
+        "hold_initiated_by": current_user.id,
+        "hold_initiated_by_name": current_user.full_name,
+        "hold_date": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.partners.update_one({"id": partner_id}, {"$set": update_data})
     await create_audit_log(current_user.id, "partner_put_on_hold", "partner", partner_id, partner, update_data)
     
-    return {"message": "Partner put on hold"}
+    return {"message": "Partner put on hold. Partner will be notified to make corrections."}
 
 @partner_router.post("/{partner_id}/send-back-to-partner")
 async def send_back_to_partner(partner_id: str, feedback_data: dict, current_user: User = Depends(get_current_user)):
