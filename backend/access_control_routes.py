@@ -285,7 +285,7 @@ async def create_custom_group(group_data: CustomGroupCreate, current_user: User 
     await db.custom_groups.insert_one(doc)
     await create_audit_log(current_user.id, "custom_group_created", "custom_group", group.id, None, doc)
     
-    return {"message": "Custom group created successfully", "group_id": group.id, "group": doc}
+    return {"message": "Custom group created successfully", "group_id": group.id}
 
 @access_control_router.put("/groups/{group_id}")
 async def update_custom_group(group_id: str, group_data: CustomGroupCreate, current_user: User = Depends(get_current_user)):
