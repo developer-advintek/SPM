@@ -188,8 +188,11 @@ async def get_my_opportunities(current_user: User = Depends(get_current_user)):
     Get current partner's active opportunities (assigned products they can sell)
     For partner portal
     """
+    # Debug: Log the user role
+    print(f"DEBUG: User role = {current_user.role}, is_partner = {is_partner(current_user)}")
+    
     if not is_partner(current_user):
-        raise HTTPException(status_code=403, detail="Only partners can access this endpoint")
+        raise HTTPException(status_code=403, detail=f"Only partners can access this endpoint. Your role: {current_user.role}")
     
     # Find partner record
     partner = await db.partners.find_one({"user_id": current_user.id}, {"_id": 0})
