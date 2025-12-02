@@ -411,3 +411,50 @@ class CustomGroup(CustomGroupCreate):
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Partner Fulfillment Models
+class FulfillmentAssignmentCreate(BaseModel):
+    partner_id: str
+    spiff_id: Optional[str] = None
+    product_ids: List[str] = []  # Products assigned for selling
+    assignment_type: str = "spiff"  # "spiff" or "direct"
+    start_date: datetime
+    end_date: Optional[datetime] = None
+    target_quantity: Optional[int] = None  # Optional sales target
+    target_revenue: Optional[Decimal] = None  # Optional revenue target
+    notes: Optional[str] = None
+
+class FulfillmentAssignment(FulfillmentAssignmentCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: str = "active"  # active, completed, expired, cancelled
+    actual_quantity: int = 0  # Actual sales made
+    actual_revenue: Decimal = Decimal("0")
+    completion_percentage: Decimal = Decimal("0")
+    assigned_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MilestoneCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    milestone_type: str = "quantity"  # "quantity" or "revenue"
+    threshold: Decimal  # Number of units or revenue amount
+    reward_amount: Optional[Decimal] = None
+    reward_type: Optional[str] = None  # "bonus", "commission_boost", "tier_upgrade"
+
+class Milestone(MilestoneCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PartnerMilestoneProgress(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    partner_id: str
+    milestone_id: str
+    assignment_id: Optional[str] = None
+    current_value: Decimal = Decimal("0")  # Current quantity or revenue
+    threshold: Decimal
+    percentage_complete: Decimal = Decimal("0")
+    status: str = "in_progress"  # in_progress, achieved, expired
+    achieved_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
