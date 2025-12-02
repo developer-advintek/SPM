@@ -48,12 +48,12 @@ export default function AccessControl() {
 
   const fetchCustomRoles = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/roles/custom`, {
+      const response = await fetch(`${BACKEND_URL}/api/access-control/roles`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setCustomRoles(data);
+        setCustomRoles(data.custom_roles || []);
       }
     } catch (error) {
       console.error('Error fetching custom roles:', error);
