@@ -361,8 +361,9 @@ class AccessControlTester:
     def test_3_2_create_finance_group(self):
         """Test 3.2: Create Finance Group"""
         try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             group_data = {
-                "name": "Finance Team",
+                "name": f"Finance Team {timestamp}",
                 "description": "Financial operations team",
                 "permissions": [
                     "approve_commissions",
