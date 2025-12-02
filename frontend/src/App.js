@@ -15,6 +15,7 @@ import SpiffCenterNew from './pages/SpiffCenterNew';
 import SalesManagement from './pages/SalesManagement';
 import AccessControl from './pages/AccessControl';
 import PartnerAuth from './pages/PartnerAuth';
+import PartnerPortal from './pages/PartnerPortal';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
