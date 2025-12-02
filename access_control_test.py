@@ -18,7 +18,7 @@ API_URL = BASE_URL
 
 # Test Credentials
 ADMIN_CREDENTIALS = {"email": "admin@test.com", "password": "admin123"}
-L1_CREDENTIALS = {"email": "l1@test.com", "password": "l1_123"}
+L1_CREDENTIALS = {"email": "l1@test.com", "password": "l1123"}
 
 class AccessControlTester:
     def __init__(self):
