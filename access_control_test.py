@@ -213,8 +213,9 @@ class AccessControlTester:
     def test_2_3_create_finance_role(self):
         """Test 2.3: Create Another Custom Role - Finance Manager"""
         try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             role_data = {
-                "name": "Finance Manager",
+                "name": f"Finance Manager {timestamp}",
                 "description": "Handles financial operations and payouts",
                 "permissions": [
                     "view_sales",
