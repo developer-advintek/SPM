@@ -288,6 +288,66 @@ backend:
           agent: "testing"
           comment: "✅ COMPLETE PARTNER ONBOARDING E2E TEST - RETRY SUCCESSFUL: All 17 test cases passed with verified L1/L2 user credentials. CRITICAL FINDINGS: 1) ✅ Admin creates partner → status 'pending_l1' correctly, 2) ✅ L1 approver (l1@test.com/l1123) can access L1 queue and approve with MANDATORY tier assignment (gold tier enforced), 3) ✅ L2 approver (l2@test.com/l2123) can access L2 queue and provide final approval → status 'approved' with 100% onboarding progress, 4) ✅ Partner appears in directory with correct status and tier after L2 approval, 5) ✅ On-hold workflow: L1 can put partners on hold → appears in on-hold queue → can be resubmitted back to pending_l1, 6) ✅ Tier enforcement: L1 approval without tier returns 400 Bad Request as expected, 7) ✅ Rejection workflow: L1 can reject → appears in rejected queue → can be resubmitted. AUTHENTICATION RESOLVED: L1 user activated and correct credentials verified (l1123/l2123). Complete multi-level approval workflow validated end-to-end with proper role-based access control."
 
+  - task: "Access Control - Get Available Permissions API"
+    implemented: true
+    working: true
+    file: "/app/backend/access_control_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/access-control/permissions working correctly. Retrieved 34 permissions with 9 categories (Dashboard & Analytics, User Management, Partner Management, Product Management, Spiff Management, Sales & Commission, Reports, Access Control, System). All expected permissions found including view_dashboard, create_partners, approve_l1, manage_roles."
+
+  - task: "Access Control - Custom Roles Management API"
+    implemented: true
+    working: true
+    file: "/app/backend/access_control_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CUSTOM ROLES MANAGEMENT FULLY TESTED: All CRUD operations working correctly. 1) ✅ GET /api/access-control/roles returns 5 system roles and custom roles, 2) ✅ POST /api/access-control/roles creates custom roles with specific permissions (Sales Manager, Finance Manager), 3) ✅ PUT /api/access-control/roles/{id} updates roles with additional permissions, 4) ✅ DELETE /api/access-control/roles/{id} deletes roles when no users assigned, 5) ✅ Duplicate role name validation returns 400 Bad Request. Fixed serialization issue in response format."
+
+  - task: "Access Control - Custom Groups Management API"
+    implemented: true
+    working: true
+    file: "/app/backend/access_control_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CUSTOM GROUPS MANAGEMENT FULLY TESTED: All CRUD operations working correctly. 1) ✅ GET /api/access-control/groups returns all groups with user details, 2) ✅ POST /api/access-control/groups creates custom groups with permissions and user assignments (Sales Team, Finance Team), 3) ✅ PUT /api/access-control/groups/{id} updates groups successfully, 4) ✅ DELETE /api/access-control/groups/{id} deletes groups correctly, 5) ✅ Duplicate group name validation returns 400 Bad Request."
+
+  - task: "Access Control - User Permissions Retrieval API"
+    implemented: true
+    working: true
+    file: "/app/backend/access_control_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/access-control/users/{user_id}/permissions working correctly. Admin user has all 34 permissions with role 'admin'. API returns combined permissions from role + groups with proper authorization checks."
+
+  - task: "Access Control - Authorization and Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/access_control_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ AUTHORIZATION AND VALIDATION FULLY TESTED: 1) ✅ Non-admin users (L1 approver) get 403 Forbidden when accessing access control endpoints, 2) ✅ Duplicate role names return 400 Bad Request with 'Role name already exists', 3) ✅ Duplicate group names return 400 Bad Request with 'Group name already exists', 4) ✅ Admin authentication working correctly, 5) ✅ L1 authentication working with correct credentials (l1@test.com/l1123)."
+
 frontend:
   - task: "Partner Directory Tab"
     implemented: true
