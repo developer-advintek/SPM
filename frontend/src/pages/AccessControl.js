@@ -62,12 +62,12 @@ export default function AccessControl() {
 
   const fetchCustomGroups = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/groups/custom`, {
+      const response = await fetch(`${BACKEND_URL}/api/access-control/groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setCustomGroups(data);
+        setCustomGroups(data.groups || []);
       }
     } catch (error) {
       console.error('Error fetching custom groups:', error);
