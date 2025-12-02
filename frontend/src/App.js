@@ -154,6 +154,14 @@ const AppContent = () => {
           }
         />
         <Route
+          path="/partner-portal"
+          element={
+            <ProtectedRoute>
+              <PartnerPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/approval-center"
           element={
             <ProtectedRoute>
