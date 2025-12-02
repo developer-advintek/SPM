@@ -141,6 +141,9 @@ async def login(credentials: UserLogin):
             print(f"LOGIN: User not found for {credentials.email}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
+        print(f"LOGIN DEBUG: User keys = {list(user.keys())}")
+        print(f"LOGIN DEBUG: _id type = {type(user.get('_id'))}")
+        
         # Get password hash
         password_hash = user.get('password_hash', '')
         
