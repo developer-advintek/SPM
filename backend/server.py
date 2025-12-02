@@ -141,7 +141,7 @@ async def login(credentials: UserLogin):
         if key in user and isinstance(user[key], str):
             user[key] = datetime.fromisoformat(user[key])
     
-    user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'google_id']})
+    user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'password_hash', 'google_id']})
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
     await create_audit_log(user_obj.id, "user_login", "user", user_obj.id, None, None)
     
@@ -169,7 +169,7 @@ async def google_login(token: dict):
         for key in ['created_at', 'updated_at']:
             if key in user and isinstance(user[key], str):
                 user[key] = datetime.fromisoformat(user[key])
-        user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'google_id']})
+        user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'password_hash', 'google_id']})
     
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
     return Token(access_token=access_token, user=user_obj)
