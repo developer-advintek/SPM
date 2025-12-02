@@ -4,125 +4,125 @@
     "success": true,
     "message": "Successfully authenticated as admin",
     "details": null,
-    "timestamp": "2025-12-02T06:52:32.601996"
+    "timestamp": "2025-12-02T06:53:13.395973"
   },
   {
     "test": "L1 Authentication",
     "success": true,
     "message": "Successfully authenticated as L1",
     "details": null,
-    "timestamp": "2025-12-02T06:52:32.864126"
+    "timestamp": "2025-12-02T06:53:13.664786"
   },
   {
     "test": "Test 1.2 - Get All Available Permissions",
     "success": true,
     "message": "Retrieved 34 permissions with 9 categories",
     "details": null,
-    "timestamp": "2025-12-02T06:52:32.901894"
+    "timestamp": "2025-12-02T06:53:13.706928"
   },
   {
     "test": "Test 1.2 - Permission Validation",
     "success": true,
     "message": "All expected permissions found",
     "details": null,
-    "timestamp": "2025-12-02T06:52:32.901928"
+    "timestamp": "2025-12-02T06:53:13.706961"
   },
   {
     "test": "Test 2.1 - Get All Roles",
     "success": true,
     "message": "Retrieved 5 system roles and 4 custom roles",
     "details": null,
-    "timestamp": "2025-12-02T06:52:32.945441"
+    "timestamp": "2025-12-02T06:53:13.748467"
   },
   {
     "test": "Test 2.2 - Create Custom Role",
-    "success": false,
-    "message": "Failed: 400",
-    "details": "{\"detail\":\"Role name already exists\"}",
-    "timestamp": "2025-12-02T06:52:32.991563"
+    "success": true,
+    "message": "Sales Manager role created with ID: 378dc0d6-9438-4c2b-89b1-9d227e467363",
+    "details": null,
+    "timestamp": "2025-12-02T06:53:13.787699"
   },
   {
     "test": "Test 2.3 - Create Finance Role",
-    "success": false,
-    "message": "Failed: 400",
-    "details": "{\"detail\":\"Role name already exists\"}",
-    "timestamp": "2025-12-02T06:52:33.034925"
+    "success": true,
+    "message": "Finance Manager role created with ID: 120d8f9b-a6c2-4084-bd5c-d83158c3a0aa",
+    "details": null,
+    "timestamp": "2025-12-02T06:53:13.869043"
   },
   {
     "test": "Test 2.4 - Update Custom Role",
-    "success": false,
-    "message": "No role ID available",
+    "success": true,
+    "message": "Role updated with additional permissions",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.035673"
+    "timestamp": "2025-12-02T06:53:13.910876"
   },
   {
     "test": "Test 2.5 - Delete Role Check",
-    "success": false,
-    "message": "No role ID available",
+    "success": true,
+    "message": "Role deleted successfully (no users assigned)",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.035692"
+    "timestamp": "2025-12-02T06:53:13.952890"
   },
   {
     "test": "Test 3.1 - Create Sales Group",
-    "success": false,
-    "message": "Failed: 400",
-    "details": "{\"detail\":\"Group name already exists\"}",
-    "timestamp": "2025-12-02T06:52:33.073933"
+    "success": true,
+    "message": "Sales Team group created with ID: 58bb8008-c943-4b07-932a-c2962ee85074",
+    "details": null,
+    "timestamp": "2025-12-02T06:53:13.994601"
   },
   {
     "test": "Test 3.2 - Create Finance Group",
-    "success": false,
-    "message": "Failed: 400",
-    "details": "{\"detail\":\"Group name already exists\"}",
-    "timestamp": "2025-12-02T06:52:33.112133"
+    "success": true,
+    "message": "Finance Team group created with ID: 47ed7e9e-6828-484f-b719-74950906acc9",
+    "details": null,
+    "timestamp": "2025-12-02T06:53:14.035806"
   },
   {
     "test": "Test 3.3 - Get All Groups",
     "success": true,
-    "message": "Retrieved 2 groups",
+    "message": "Retrieved 4 groups",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.190643"
+    "timestamp": "2025-12-02T06:53:14.074131"
   },
   {
     "test": "Test 3.4 - Update Group",
-    "success": false,
-    "message": "No group ID available",
+    "success": true,
+    "message": "Group updated successfully",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.191373"
+    "timestamp": "2025-12-02T06:53:14.112083"
   },
   {
     "test": "Test 3.5 - Delete Group",
-    "success": false,
-    "message": "No group ID available",
+    "success": true,
+    "message": "Group deleted successfully",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.191390"
+    "timestamp": "2025-12-02T06:53:14.153159"
   },
   {
     "test": "Test 4.1 - Get Admin Permissions",
     "success": true,
     "message": "Admin has 34 permissions (role: admin)",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.276820"
+    "timestamp": "2025-12-02T06:53:14.232608"
   },
   {
     "test": "Test 5.1 - Duplicate Role Name",
     "success": true,
     "message": "400 Bad Request - Role name already exists",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.316661"
+    "timestamp": "2025-12-02T06:53:14.315890"
   },
   {
     "test": "Test 5.2 - Duplicate Group Name",
     "success": true,
     "message": "400 Bad Request - Group name already exists",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.361718"
+    "timestamp": "2025-12-02T06:53:14.353116"
   },
   {
     "test": "Test 5.3 - Non-Admin Access",
     "success": true,
     "message": "403 Forbidden - Admin access required",
     "details": null,
-    "timestamp": "2025-12-02T06:52:33.398215"
+    "timestamp": "2025-12-02T06:53:14.392874"
   }
 ]
