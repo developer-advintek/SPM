@@ -1,0 +1,128 @@
+[
+  {
+    "test": "Admin Authentication",
+    "success": true,
+    "message": "Successfully authenticated as admin",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:14.578780"
+  },
+  {
+    "test": "L1 Authentication",
+    "success": false,
+    "message": "Failed: 401",
+    "details": "{\"detail\":\"Invalid credentials\"}",
+    "timestamp": "2025-12-02T06:51:14.843858"
+  },
+  {
+    "test": "Test 1.2 - Get All Available Permissions",
+    "success": true,
+    "message": "Retrieved 34 permissions with 9 categories",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:14.889503"
+  },
+  {
+    "test": "Test 1.2 - Permission Validation",
+    "success": true,
+    "message": "All expected permissions found",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:14.889540"
+  },
+  {
+    "test": "Test 2.1 - Get All Roles",
+    "success": true,
+    "message": "Retrieved 5 system roles and 0 custom roles",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:14.933140"
+  },
+  {
+    "test": "Test 2.2 - Create Custom Role",
+    "success": false,
+    "message": "Failed: 500",
+    "details": "Internal Server Error",
+    "timestamp": "2025-12-02T06:51:15.034604"
+  },
+  {
+    "test": "Test 2.3 - Create Finance Role",
+    "success": false,
+    "message": "Failed: 500",
+    "details": "Internal Server Error",
+    "timestamp": "2025-12-02T06:51:15.081331"
+  },
+  {
+    "test": "Test 2.4 - Update Custom Role",
+    "success": false,
+    "message": "No role ID available",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.082034"
+  },
+  {
+    "test": "Test 2.5 - Delete Role Check",
+    "success": false,
+    "message": "No role ID available",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.082054"
+  },
+  {
+    "test": "Test 3.1 - Create Sales Group",
+    "success": false,
+    "message": "Failed: 500",
+    "details": "Internal Server Error",
+    "timestamp": "2025-12-02T06:51:15.151093"
+  },
+  {
+    "test": "Test 3.2 - Create Finance Group",
+    "success": false,
+    "message": "Failed: 500",
+    "details": "Internal Server Error",
+    "timestamp": "2025-12-02T06:51:15.193094"
+  },
+  {
+    "test": "Test 3.3 - Get All Groups",
+    "success": true,
+    "message": "Retrieved 2 groups",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.233763"
+  },
+  {
+    "test": "Test 3.4 - Update Group",
+    "success": false,
+    "message": "No group ID available",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.234517"
+  },
+  {
+    "test": "Test 3.5 - Delete Group",
+    "success": false,
+    "message": "No group ID available",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.234535"
+  },
+  {
+    "test": "Test 4.1 - Get Admin Permissions",
+    "success": true,
+    "message": "Admin has 34 permissions (role: admin)",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.327984"
+  },
+  {
+    "test": "Test 5.1 - Duplicate Role Name",
+    "success": true,
+    "message": "400 Bad Request - Role name already exists",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.373741"
+  },
+  {
+    "test": "Test 5.2 - Duplicate Group Name",
+    "success": true,
+    "message": "400 Bad Request - Group name already exists",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.417543"
+  },
+  {
+    "test": "Test 5.3 - Non-Admin Access",
+    "success": false,
+    "message": "L1 token not available",
+    "details": null,
+    "timestamp": "2025-12-02T06:51:15.418321"
+  }
+]
