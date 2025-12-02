@@ -133,16 +133,17 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
-    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    # Get user with password_hash
+    user = await db.users.find_one({"email": credentials.email})
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials - user not found")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     password_hash = user.get('password_hash', '')
     if not password_hash:
-        raise HTTPException(status_code=401, detail="Invalid credentials - no password hash")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not verify_password(credentials.password, password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials - password mismatch")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     for key in ['created_at', 'updated_at']:
         if key in user and isinstance(user[key], str):
