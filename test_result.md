@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the comprehensive Partner Hub module with multi-level approval workflow"
+user_problem_statement: "ACCESS CONTROL SYSTEM - COMPLETE TESTING - Testing new Access Control system for custom roles, groups, and permissions"
 
 backend:
   - task: "Admin Partner Creation API"
