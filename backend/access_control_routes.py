@@ -189,7 +189,7 @@ async def create_custom_role(role_data: CustomRoleCreate, current_user: User = D
     await db.custom_roles.insert_one(doc)
     await create_audit_log(current_user.id, "custom_role_created", "custom_role", role.id, None, doc)
     
-    return {"message": "Custom role created successfully", "role_id": role.id, "role": doc}
+    return {"message": "Custom role created successfully", "role_id": role.id}
 
 @access_control_router.put("/roles/{role_id}")
 async def update_custom_role(role_id: str, role_data: CustomRoleCreate, current_user: User = Depends(get_current_user)):
