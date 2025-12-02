@@ -179,7 +179,7 @@ export default function AccessControl() {
     if (!window.confirm('Are you sure you want to delete this role?')) return;
     
     try {
-      const response = await fetch(`${BACKEND_URL}/api/roles/custom/${roleId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/access-control/roles/${roleId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -187,6 +187,9 @@ export default function AccessControl() {
       if (response.ok) {
         await fetchCustomRoles();
         alert('Role deleted!');
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to delete role');
       }
     } catch (error) {
       console.error('Error deleting role:', error);
@@ -197,7 +200,7 @@ export default function AccessControl() {
     if (!window.confirm('Are you sure you want to delete this group?')) return;
     
     try {
-      const response = await fetch(`${BACKEND_URL}/api/groups/custom/${groupId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/access-control/groups/${groupId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -205,6 +208,9 @@ export default function AccessControl() {
       if (response.ok) {
         await fetchCustomGroups();
         alert('Group deleted!');
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to delete group');
       }
     } catch (error) {
       console.error('Error deleting group:', error);
