@@ -144,10 +144,10 @@ export default function AccessControl() {
     setLoading(true);
     try {
       const url = editingGroup
-        ? `${BACKEND_URL}/api/groups/custom/${editingGroup.id}`
-        : `${BACKEND_URL}/api/groups/custom`;
+        ? `${BACKEND_URL}/api/access-control/groups/${editingGroup.id}`
+        : `${BACKEND_URL}/api/access-control/groups`;
       
-      const method = editingGroup ? 'PATCH' : 'POST';
+      const method = editingGroup ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
