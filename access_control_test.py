@@ -431,8 +431,9 @@ class AccessControlTester:
             return False
             
         try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             update_data = {
-                "name": "Sales & Marketing Team",
+                "name": f"Sales & Marketing Team {timestamp}",
                 "description": "Sales representatives, managers, and marketing staff",
                 "permissions": [
                     "view_sales",
