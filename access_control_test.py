@@ -322,8 +322,9 @@ class AccessControlTester:
     def test_3_1_create_sales_group(self):
         """Test 3.1: Create Custom Group - Sales Team"""
         try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             group_data = {
-                "name": "Sales Team",
+                "name": f"Sales Team {timestamp}",
                 "description": "All sales representatives and managers",
                 "permissions": [
                     "view_sales",
