@@ -173,8 +173,9 @@ class AccessControlTester:
     def test_2_2_create_custom_role(self):
         """Test 2.2: Create Custom Role - Sales Manager"""
         try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             role_data = {
-                "name": "Sales Manager",
+                "name": f"Sales Manager {timestamp}",
                 "description": "Manages sales and commission workflows",
                 "permissions": [
                     "view_sales",
