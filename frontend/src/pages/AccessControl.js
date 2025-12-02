@@ -76,15 +76,15 @@ export default function AccessControl() {
 
   const fetchAvailablePermissions = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/permissions/available`, {
+      const response = await fetch(`${BACKEND_URL}/api/access-control/permissions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setAvailablePermissions(data);
+        setAvailablePermissions(data.categories || {});
       }
     } catch (error) {
-      console.error('Error fetching permissions:', error);
+      console.error('Failed to fetch permissions:', error);
     }
   };
 
