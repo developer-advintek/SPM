@@ -71,9 +71,15 @@ const Navigation = () => {
                   </Link>
                 </>
               )}
-              <Link to="/partners" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partners">
-                Partners
-              </Link>
+              {user.role === 'partner' ? (
+                <Link to="/partner-portal" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partner-portal">
+                  My Portal
+                </Link>
+              ) : (
+                <Link to="/partners" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-partners">
+                  Partners
+                </Link>
+              )}
               {(user.role === 'admin' || user.role === 'finance') && (
                 <Link to="/spiff-center" className="text-slate-700 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium" data-testid="nav-spiff-center">
                   Spiffs
