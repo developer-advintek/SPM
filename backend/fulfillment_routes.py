@@ -35,7 +35,16 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
-    return User(**{k: v for k, v in user.items() if k not in ['password_hash', 'google_id']})
+    # Create a minimal user object with required fields
+    user_data = {
+        "id": user.get("id"),
+        "email": user.get("email"),
+        "full_name": user.get("full_name"),
+        "role": user.get("role"),
+        "active": user.get("active", True)
+    }
+    
+    return User(**user_data)
 
 def is_admin_or_pm(user: User) -> bool:
     """Check if user is admin or partner manager"""
