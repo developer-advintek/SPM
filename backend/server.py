@@ -141,7 +141,20 @@ async def login(credentials: UserLogin):
         if key in user and isinstance(user[key], str):
             user[key] = datetime.fromisoformat(user[key])
     
-    user_obj = User(**{k: v for k, v in user.items() if k not in ['password', 'password_hash', 'google_id']})
+    # Build user object with safe defaults for optional fields
+    user_data = {
+        "id": user.get("id"),
+        "email": user.get("email"),
+        "full_name": user.get("full_name"),
+        "role": user.get("role", "rep"),
+        "territory_id": user.get("territory_id"),
+        "manager_id": user.get("manager_id"),
+        "active": user.get("active", True),
+        "created_at": user.get("created_at", datetime.now(timezone.utc)),
+        "updated_at": user.get("updated_at", datetime.now(timezone.utc))
+    }
+    
+    user_obj = User(**user_data)
     access_token = create_access_token(data={"sub": user_obj.id, "role": user_obj.role})
     await create_audit_log(user_obj.id, "user_login", "user", user_obj.id, None, None)
     
