@@ -41,8 +41,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         "email": user.get("email"),
         "full_name": user.get("full_name"),
         "role": user.get("role"),
-        "active": user.get("active", True)
+        "territory_id": user.get("territory_id"),
+        "manager_id": user.get("manager_id"),
+        "active": user.get("active", True),
+        "created_at": user.get("created_at", datetime.now(timezone.utc)),
+        "updated_at": user.get("updated_at", datetime.now(timezone.utc))
     }
+    
+    # Convert datetime strings to datetime objects if needed
+    for key in ['created_at', 'updated_at']:
+        if isinstance(user_data[key], str):
+            user_data[key] = datetime.fromisoformat(user_data[key])
     
     return User(**user_data)
 
