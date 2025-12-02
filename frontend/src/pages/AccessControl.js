@@ -107,10 +107,10 @@ export default function AccessControl() {
     setLoading(true);
     try {
       const url = editingRole 
-        ? `${BACKEND_URL}/api/roles/custom/${editingRole.id}`
-        : `${BACKEND_URL}/api/roles/custom`;
+        ? `${BACKEND_URL}/api/access-control/roles/${editingRole.id}`
+        : `${BACKEND_URL}/api/access-control/roles`;
       
-      const method = editingRole ? 'PATCH' : 'POST';
+      const method = editingRole ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
@@ -128,7 +128,8 @@ export default function AccessControl() {
         setRoleFormData({ name: '', description: '', permissions: [] });
         alert(editingRole ? 'Role updated!' : 'Role created!');
       } else {
-        alert('Failed to save role');
+        const error = await response.json();
+        alert(error.detail || 'Failed to save role');
       }
     } catch (error) {
       console.error('Error saving role:', error);
