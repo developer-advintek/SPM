@@ -220,8 +220,12 @@ async def get_me(current_user: User = Depends(get_current_user)):
 # ============= USER MANAGEMENT ENDPOINTS =============
 
 @api_router.get("/users", response_model=List[User])
-async def list_users(current_user: User = Depends(require_role(["admin", "manager"]))):
-    users = await db.users.find({}, {"_id": 0, "password": 0, "google_id": 0}).to_list(1000)
+async def list_users(current_user: User = Depends(require_role(["admin", "manager"])), skip: int = 0, limit: int = 100):
+    # Optimized query with pagination and field projection
+    users = await db.users.find(
+        {}, 
+        {"_id": 0, "id": 1, "email": 1, "full_name": 1, "role": 1, "territory_id": 1, "manager_id": 1, "active": 1, "created_at": 1, "updated_at": 1}
+    ).skip(skip).limit(min(limit, 100)).to_list(min(limit, 100))
     for u in users:
         for key in ['created_at', 'updated_at']:
             if key in u and isinstance(u[key], str):
