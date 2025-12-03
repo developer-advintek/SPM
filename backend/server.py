@@ -268,8 +268,9 @@ async def create_product(product_data: ProductCreate, current_user: User = Depen
     return product
 
 @api_router.get("/products", response_model=List[Product])
-async def list_products(current_user: User = Depends(get_current_user)):
-    products = await db.products.find({}, {"_id": 0}).to_list(1000)
+async def list_products(current_user: User = Depends(get_current_user), skip: int = 0, limit: int = 100):
+    # Optimized query with pagination
+    products = await db.products.find({}, {"_id": 0}).skip(skip).limit(min(limit, 100)).to_list(min(limit, 100))
     for p in products:
         for key in ['created_at', 'updated_at']:
             if isinstance(p[key], str):
