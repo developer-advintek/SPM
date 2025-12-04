@@ -11,7 +11,7 @@ import base64
 from datetime import datetime, timezone
 
 # Configuration
-BASE_URL = "https://partnerpro-2.preview.emergentagent.com/api"
+BASE_URL = "https://nexflow-ppm.preview.emergentagent.com/api"
 ADMIN_CREDENTIALS = {"email": "admin@test.com", "password": "admin123"}
 
 class SimplifiedPartnerTester:

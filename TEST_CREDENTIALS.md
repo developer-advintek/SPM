@@ -183,7 +183,7 @@ Total Commission: $520
 
 ## 🎯 Key URLs
 
-- **Login:** https://partnerpro-2.preview.emergentagent.com/
+- **Login:** https://nexflow-ppm.preview.emergentagent.com/
 - **Partner Portal:** /partner-portal
 - **Admin Partners:** /partners
 - **Products:** /products

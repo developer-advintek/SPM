@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import uuid
 
 # Configuration
-BASE_URL = "https://partnerpro-2.preview.emergentagent.com/api"
+BASE_URL = "https://nexflow-ppm.preview.emergentagent.com/api"
 
 # Test Credentials (VERIFIED)
 TEST_CREDENTIALS = {

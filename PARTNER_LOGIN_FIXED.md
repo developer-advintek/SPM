@@ -61,7 +61,7 @@
 
 ### 1. Login
 ```
-URL: https://partnerpro-2.preview.emergentagent.com/
+URL: https://nexflow-ppm.preview.emergentagent.com/
 Email: partner@test.com
 Password: partner123
 ```
@@ -141,7 +141,7 @@ The system was using **two different MongoDB databases**:
 
 ### Test Login (curl):
 ```bash
-curl -X POST "https://partnerpro-2.preview.emergentagent.com/api/auth/login" \
+curl -X POST "https://nexflow-ppm.preview.emergentagent.com/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"partner@test.com","password":"partner123"}'
 ```
@@ -149,7 +149,7 @@ curl -X POST "https://partnerpro-2.preview.emergentagent.com/api/auth/login" \
 ### Test Opportunities:
 ```bash
 TOKEN="<your_token_here>"
-curl -X GET "https://partnerpro-2.preview.emergentagent.com/api/fulfillment/assignments/my-opportunities" \
+curl -X GET "https://nexflow-ppm.preview.emergentagent.com/api/fulfillment/assignments/my-opportunities" \
   -H "Authorization: Bearer $TOKEN"
 ```
 

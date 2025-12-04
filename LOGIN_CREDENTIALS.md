@@ -1,7 +1,7 @@
 # 🔐 Nexright Partner Management - Login Credentials
 
 ## 🌐 Application URL
-**https://partnerpro-2.preview.emergentagent.com/**
+**https://nexflow-ppm.preview.emergentagent.com/**
 
 ---
 
@@ -44,12 +44,12 @@
 ## 🎯 Quick Login Guide
 
 ### For Admin/PM/Approvers:
-1. Go to: https://partnerpro-2.preview.emergentagent.com/
+1. Go to: https://nexflow-ppm.preview.emergentagent.com/
 2. Login with your credentials
 3. Navigation shows: Dashboard, Partners, Products, Spiffs, etc.
 
 ### For Partners:
-1. Go to: https://partnerpro-2.preview.emergentagent.com/
+1. Go to: https://nexflow-ppm.preview.emergentagent.com/
 2. Login as: **partner@test.com / partner123**
 3. Click "My Portal" in navigation
 4. View opportunities, log sales, track performance
@@ -199,7 +199,7 @@
 
 ## 📞 Quick Reference
 
-**Application URL:** https://partnerpro-2.preview.emergentagent.com/
+**Application URL:** https://nexflow-ppm.preview.emergentagent.com/
 
 **Admin Login:** admin@test.com / admin123
 **Partner Login:** partner@test.com / partner123

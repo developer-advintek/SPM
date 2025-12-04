@@ -13,7 +13,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BASE_URL = "https://partnerpro-2.preview.emergentagent.com"
+BASE_URL = "https://nexflow-ppm.preview.emergentagent.com"
 API_URL = BASE_URL
 
 # Test Credentials
